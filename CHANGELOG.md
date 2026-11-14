@@ -10,6 +10,18 @@ in the addon's status messages.
 
 ## Addon
 
+### 1.11.43
+- `/ishare scanmessages` is gone, and so is every line it turned on: a pass no longer says
+  anything in chat as it starts, when it finishes reading, or at logout. The setting it wrote
+  to the saved file is no longer saved either, so a file written by an older version simply
+  drops it on its next save.
+- `/ishare scan bags` is gone. A pass now runs on its own when a storage closes, at login, on
+  a zone change and at logout, and `/ishare rebuild` still does the same work on demand.
+- `/ishare scan raw` (and its `/ishare raw` alias) is gone. It was added to tell a slow read
+  from slow work after it, which it did, and the answer moved the work into slices.
+- The help line for `rebuild` said it runs "when a bank opens"; it says "when a storage
+  closes", which is what it has done since 1.11.39.
+
 ### 1.11.42
 - A pass is now sliced all the way through, not just over the bags. It was three pieces of
   work - read the slots, decide what each share becomes, close the pass out - and only the
