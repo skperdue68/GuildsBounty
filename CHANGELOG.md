@@ -10,6 +10,20 @@ in the addon's status messages.
 
 ## Addon
 
+### 1.11.41
+- A share is only ever removed from a bag that was actually read. If a bag could not be
+  seen - an unopened bank, a house chest in a house you are not standing in, a guild bank
+  with guild bank sharing off - the shares filed there are left alone, and because the
+  share stays, so does the item's first-dumped date. A bag that was read and no longer
+  holds the item is where a share is dropped, and only then.
+- A piece filed by a house scan is judged only by a scan of that house: a bag pass never
+  removes one, and the house scan removes only rows keyed to the house it is standing in.
+- The date index is now pruned wherever an offer is taken away, not just by a sync, a
+  rebuild, or removing a share by hand: taking an item off the always-shared list, clearing
+  a house, a guild whose membership has changed, and the login cleanup of old placed keys
+  all prune it too. An item offered nowhere loses its date, so being shared again later
+  starts a new one instead of inheriting a stale one.
+
 ### 1.11.40
 - An entry in `sharedItems` and `alwaysShare` now keeps only the fields that are read:
   the ones the website has a column for, the place and count the reserve and AVAILABLE
