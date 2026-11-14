@@ -3,7 +3,7 @@ ItemShare.name = "ItemShare"
 -- Kept in step with ## Version in ItemShare.txt. Written into the saved
 -- variables so an uploaded file says which addon produced it, which is the only
 -- reliable way to answer "am I actually running the new version?".
-local ADDON_VERSION = "1.11.42"
+local ADDON_VERSION = "1.11.43"
 -- Bumped whenever the saved layout changes shape. A file written by a different
 -- number is not migrated: its tables are started over, so the file is rewritten in
 -- the current layout on the next save.
@@ -49,10 +49,6 @@ local defaults = {
     -- so an offer cannot be destroyed by accident while it is on the list.
     shareProtection = true,
     guildBankSharingEnabled = false,
-    -- A line in chat when a pass over the bags starts and when it ends. On while the
-    -- client is misbehaving, because a stall with no message and a stall after "scanning
-    -- your bags" are different problems; /ishare scanmessages turns it off again.
-    scanMessages = true,
     -- Whether the addon reads your bags on its own: at login (a reload says so), on a zone
     -- change, when a storage closes, and at logout. Off, nothing is read unless a command
     -- asks, which is the setting for chasing a client that locks up with this addon loaded.
@@ -4472,16 +4468,6 @@ local SCAN_PAUSE_MS = 80
 local StartInventoryScan
 local scanJob = nil
 
--- A line at the start and the end of a pass, and nothing else: the point is to see from
--- chat whether a stall happened during a read or with nothing running at all.
-local function AnnounceScan(message)
-    if not (ItemShare.savedVars and ItemShare.savedVars.scanMessages ~= false) then
-        return
-    end
-
-    PrintMessage(message)
-end
-
 -- A slice is a count of slots rather than milliseconds because a slot costs about the same
 -- everywhere; the pause is what keeps the client responsive. Twenty slots with eighty
 -- milliseconds between them is half the work in each frame and twice the breathing room, so
@@ -4559,7 +4545,6 @@ end
 
 local function FinishScan(job)
     scanJob = nil
-    AnnounceScan(string.format("Bag read finished (%s) - working the changes through.", tostring(job.reason or "unknown")))
 
     local onDone = job.onDone
     if onDone then
@@ -4618,20 +4603,6 @@ StartInventoryScan = function(onDone, reason)
         reason = reason,
     }
     scanJob = job
-
-    -- The names are the useful half of this line: a pass that can see the backpack and the
-    -- bank is a different reading from one that can see the house chests, and an unopened
-    -- storage is listed by its absence rather than counted as zero.
-    local readableNames = {}
-    for _, unit in ipairs(units) do
-        readableNames[#readableNames + 1] = tostring(unit.locationLabel)
-    end
-
-    AnnounceScan(string.format(
-        "Scanning your bags (%s): %s.",
-        tostring(reason or "unknown"),
-        #readableNames > 0 and table.concat(readableNames, ", ") or "no bag can be read right now"
-    ))
 
     if #units == 0 or not zo_callLater then
         FinishScan(job)
@@ -5124,85 +5095,6 @@ local function DescribeLoadReason()
     return "login"
 end
 
--- Reading the bags when a command asks for it, in the same slices as the automatic pass:
--- a manual read costs the same per frame as a login one, and says so in chat the same way.
-local function ScanBagsNow(reason)
-    if not ItemShare.savedVars then
-        return
-    end
-
-    StartInventoryScan(function(index)
-        StartSlicedReconcile("rebuild", false, index)
-    end, reason)
-end
-
--- A read with nothing done with it: no index, no comparison, no saved entry, nothing kept.
--- It exists to answer one question - is the time going on reading the bags or on what this
--- addon does with them afterwards - so it walks the same getters the real pass does and
--- throws the answers away.
-local function ReadBagsRaw()
-    if not ItemShare.savedVars then
-        return
-    end
-
-    local clock = GetTimeMilliseconds
-    local function nowMs()
-        return (clock and clock()) or 0
-    end
-
-    local bagIds = GetTrackedBagIds()
-    local readable = {}
-
-    for _, bagId in ipairs(bagIds) do
-        local bagSize = GetBagSize(bagId) or 0
-        if bagSize > 0 then
-            local _, locationLabel = GetBagLocationInfo(bagId)
-            readable[#readable + 1] = string.format("%s (%d slots)", tostring(locationLabel), bagSize)
-        end
-    end
-
-    local startedAt = nowMs()
-    PrintMessage(string.format(
-        "Raw read starting: %s.",
-        #readable > 0 and table.concat(readable, ", ") or "no bag can be read right now"
-    ))
-
-    local slotCount = 0
-    local itemCount = 0
-    local perBag = {}
-
-    for _, bagId in ipairs(bagIds) do
-        local bagSize = GetBagSize(bagId) or 0
-        if bagSize > 0 then
-            local bagStartedAt = nowMs()
-
-            for slotIndex = 0, bagSize - 1 do
-                slotCount = slotCount + 1
-
-                local slotItemName = GetItemName(bagId, slotIndex)
-                if slotItemName and slotItemName ~= "" and IsItemEligibleForShare(bagId, slotIndex) then
-                    local itemData = GetItemDataFromBagSlot(bagId, slotIndex)
-                    if itemData and itemData.itemLink then
-                        itemCount = itemCount + 1
-                        GetItemShareCount(bagId, slotIndex)
-                    end
-                end
-            end
-
-            local _, locationLabel = GetBagLocationInfo(bagId)
-            perBag[#perBag + 1] = string.format("%s %d ms", tostring(locationLabel), nowMs() - bagStartedAt)
-        end
-    end
-
-    PrintMessage(string.format(
-        "Raw read finished: %d slots, %d items, %d ms total (%s). Nothing was stored or compared.",
-        slotCount,
-        itemCount,
-        nowMs() - startedAt,
-        #perBag > 0 and table.concat(perBag, ", ") or "nothing to read"
-    ))
-end
-
 -- Which of the tracked bags can be read right now. The bank, the guild bank, each house
 -- chest and the furnishing vault carry nothing until their window has loaded them, so
 -- this list is exactly the set of places a pass can see.
@@ -5259,9 +5151,7 @@ local function ScanBeforeLogout()
         return
     end
 
-    AnnounceScan("Reading every bag before the file is saved.")
     RebuildSharedItemsWithInventory(true, BuildActualInventoryIndex())
-    AnnounceScan("Bags read; the file is current.")
 end
 
 local function SharedEntriesMatching(searchText)
@@ -5819,7 +5709,7 @@ local function PrintCommandHelp()
     PrintMessage("/itemshare list      - Open the shared items window")
     PrintMessage("/itemshare reset     - Clear all shared entries")
     PrintMessage("/itemshare sync      - Recount and drop shares you no longer own, in bags that are readable now")
-    PrintMessage("/itemshare rebuild   - Rewrite every shared item from your current bags (also runs on login and when a bank opens)")
+    PrintMessage("/itemshare rebuild   - Rewrite every shared item from your current bags (also runs on login and when a storage closes)")
     PrintMessage("/itemshare save      - Reload the UI")
     PrintMessage("/itemshare guilds    - Show the guilds this character's shares are matched against")
     PrintMessage("/itemshare always    - List the items you always offer, in or out of your bags")
@@ -5830,9 +5720,6 @@ local function PrintCommandHelp()
     PrintMessage("/itemshare expire N  - Show a stopwatch on shares older than N days (0 turns it off)")
     PrintMessage("/itemshare server    - Show the platform and megaserver this file is recorded for")
     PrintMessage("/itemshare guildbank - Turn sharing from the guild bank on or off (the bag is only read while this is on)")
-    PrintMessage("/itemshare scanmessages - Turn the chat line at the start and end of every bag read on or off")
-    PrintMessage("/itemshare scan bags - Read your bags now and rewrite every share from what is in them")
-    PrintMessage("/itemshare scan raw  - Read the bags and keep nothing: a timing test, not a scan")
     PrintMessage("/itemshare scan      - Share every unbound furnishing placed in the house you own and are standing in (same as scan house)")
     PrintMessage("/itemshare scan clear - Clear every share filed as Placed (<house>) for the house you are standing in")
     PrintMessage("/itemshare autoscan  - Turn the reads that happen on their own on or off: /itemshare autoscan on|off")
@@ -5865,10 +5752,6 @@ local function OnSlashCommand(arg)
         SyncSharedItemsWithInventory()
     elseif string.match(lowerArg, "^scan%s+clear$") or string.match(lowerArg, "^scan%s+reset$") then
         ClearPlacedFurnishingsForCurrentHouse()
-    elseif string.match(lowerArg, "^scan%s+bags?$") then
-        ScanBagsNow("the /ishare scan bags command")
-    elseif string.match(lowerArg, "^scan%s+raw$") or lowerArg == "raw" then
-        ReadBagsRaw()
     elseif lowerArg == "scan" or lowerArg == "scan house" or lowerArg == "scan placed" then
         ScanPlacedFurnishings()
     elseif lowerArg == "rebuild" then
@@ -5943,16 +5826,6 @@ local function OnSlashCommand(arg)
                 or "The guild bank is no longer read at all."
         ))
         RefreshShareListWindowIfVisible()
-    elseif lowerArg == "scanmessages" then
-        local wasOn = ItemShare.savedVars.scanMessages ~= false
-        ItemShare.savedVars.scanMessages = not wasOn
-
-        PrintMessage(string.format(
-            "Scan messages %s. %s",
-            wasOn and "off" or "on",
-            wasOn and "Bag reads no longer say so in chat."
-                or "Every bag read says so in chat as it starts and as it ends."
-        ))
     elseif lowerArg == "autoscan" or string.match(lowerArg, "^autoscan%s+on$") or string.match(lowerArg, "^autoscan%s+off$") then
         local wasOn = ItemShare.savedVars.autoScan ~= false
         local isOn
@@ -5971,7 +5844,7 @@ local function OnSlashCommand(arg)
             isOn and "on" or "off",
             isOn
                 and "The bags are read at login, on a zone change, when a storage closes, and at logout."
-                or "Nothing is read on its own now. /ishare scan bags reads them when you ask, and /ishare sync and /ishare rebuild still work."
+                or "Nothing is read on its own now. /ishare rebuild reads them when you ask, and /ishare sync still works."
         ))
     else
         PrintCommandHelp()
