@@ -3,7 +3,7 @@ ItemShare.name = "ItemShare"
 -- Kept in step with ## Version in ItemShare.txt. Written into the saved
 -- variables so an uploaded file says which addon produced it, which is the only
 -- reliable way to answer "am I actually running the new version?".
-local ADDON_VERSION = "1.11.41"
+local ADDON_VERSION = "1.11.42"
 -- Bumped whenever the saved layout changes shape. A file written by a different
 -- number is not migrated: its tables are started over, so the file is rewritten in
 -- the current layout on the next save.
@@ -2559,7 +2559,16 @@ end
 -- toggled while the deconstruction pane is open has to update in that pane too.
 local itemShareExtraListViews = {}
 
+-- A pass over the shares refreshes the badges and the list once, at the end, rather than
+-- once per entry: repainting every visible row is the most expensive thing a single save
+-- can do, and doing it forty times in a row is what made the pass feel like a freeze.
+local slicingEntryWrites = false
+
 TryRefreshInventoryVisuals = function()
+    if slicingEntryWrites then
+        return
+    end
+
     if PLAYER_INVENTORY and PLAYER_INVENTORY.inventories then
         for _, inventory in pairs(PLAYER_INVENTORY.inventories) do
             local listView = inventory and inventory.listView
@@ -4550,7 +4559,7 @@ end
 
 local function FinishScan(job)
     scanJob = nil
-    AnnounceScan(string.format("Bag scan finished (%s).", tostring(job.reason or "unknown")))
+    AnnounceScan(string.format("Bag read finished (%s) - working the changes through.", tostring(job.reason or "unknown")))
 
     local onDone = job.onDone
     if onDone then
@@ -4820,187 +4829,232 @@ RefreshAlwaysShareHeldCounts = function(inventoryIndex)
     return changed
 end
 
-SyncSharedItemsWithInventory = function(quiet, prebuiltIndex)
+-- A pass is three pieces of work, not one: read the bags, decide what each share becomes,
+-- then close the pass out. Only the read was sliced, which left the part that actually
+-- costs - rebuilding entries, writing them back, and repainting the badges - in a single
+-- frame. All three now run the same way: a bounded slice, a pause, the next slice.
+--
+-- One entry costs more than one slot because a rebuilt entry goes through SaveSharedEntry,
+-- which is why the slice is measured in entries rather than slots.
+local APPLY_ENTRIES_PER_SLICE = 25
+local APPLY_PAUSE_MS = 60
+
+local reconcileJob = nil
+
+-- What one share should become, given an index of what the bags hold now. This is the
+-- whole of the decision - remove, update, or leave alone - so a sliced pass and an
+-- immediate one cannot disagree about it.
+local function ReconcileOneEntry(job, itemKey, entry)
     local sharedItems = ItemShare.savedVars.sharedItems
-    local inventoryIndex = prebuiltIndex or BuildActualInventoryIndex()
-    local removedCount, updatedCount, unchangedCount = 0, 0, 0
+    local inventoryIndex = job.index
+    local quiet = job.quiet
+    local counters = job.counters
+    local itemName = tostring(entry.itemName or "Unknown Item")
+    local actualByEntry = inventoryIndex.countsByEntryKey[itemKey]
+    local actualCount = actualByEntry and (tonumber(actualByEntry.count or 0) or 0) or 0
+    local currentLocation = actualByEntry and tostring(actualByEntry.sharedFrom or entry.sharedFrom or "-") or tostring(entry.sharedFrom or "-")
+    local currentLocationKey = actualByEntry and tostring(actualByEntry.locationKey or entry.locationKey or "") or tostring(entry.locationKey or "")
+    local currentItemKey = itemKey
+    local currentItemData = actualByEntry and actualByEntry.itemData or nil
 
-    local snapshot = {}
-    for itemKey, entry in pairs(sharedItems) do
-        snapshot[itemKey] = entry
+    -- A piece filed by /ishare scan stands in a house rather than in a bag, so
+    -- the bags must not claim it back: the scan of that house is its only record.
+    if actualCount == 0 and not IsPlacedLocationKey(entry.locationKey) then
+        local alternateMatch = FindAlternateSharedEntryMatch(entry, inventoryIndex)
+        if alternateMatch then
+            actualCount = tonumber(alternateMatch.count or 0) or 0
+            currentLocation = tostring(alternateMatch.sharedFrom or currentLocation or "-")
+            currentLocationKey = tostring(alternateMatch.locationKey or currentLocationKey or "")
+            currentItemKey = tostring(alternateMatch.itemKey or currentItemKey or itemKey)
+            currentItemData = alternateMatch.itemData or currentItemData
+        end
     end
 
-    for itemKey, entry in pairs(snapshot) do
-        local itemName = tostring(entry.itemName or "Unknown Item")
-        local actualByEntry = inventoryIndex.countsByEntryKey[itemKey]
-        local actualCount = actualByEntry and (tonumber(actualByEntry.count or 0) or 0) or 0
-        local currentLocation = actualByEntry and tostring(actualByEntry.sharedFrom or entry.sharedFrom or "-") or tostring(entry.sharedFrom or "-")
-        local currentLocationKey = actualByEntry and tostring(actualByEntry.locationKey or entry.locationKey or "") or tostring(entry.locationKey or "")
-        local currentItemKey = itemKey
+    local entryLocationKey = tostring(entry.locationKey or BuildLocationKeyFromSharedFrom(entry.sharedFrom) or "")
+    local canVerify = inventoryIndex.observableLocationKeys[entryLocationKey] == true
 
-        -- A piece filed by /ishare scan stands in a house rather than in a bag, so
-        -- the bags must not claim it back: the scan of that house is its only record.
-        if actualCount == 0 and not IsPlacedLocationKey(entry.locationKey) then
-            local alternateMatch = FindAlternateSharedEntryMatch(entry, inventoryIndex)
-            if alternateMatch then
-                actualCount = tonumber(alternateMatch.count or 0) or 0
-                currentLocation = tostring(alternateMatch.sharedFrom or currentLocation or "-")
-                currentLocationKey = tostring(alternateMatch.locationKey or currentLocationKey or "")
-                currentItemKey = tostring(alternateMatch.itemKey or currentItemKey or itemKey)
-            end
-        end
-
-        local entryLocationKey = tostring(entry.locationKey or BuildLocationKeyFromSharedFrom(entry.sharedFrom) or "")
-        local canVerify = inventoryIndex.observableLocationKeys[entryLocationKey] == true
-
-        if actualCount <= 0 then
-            if not canVerify then
-                -- That bag could not be read this session, so "not found" proves
-                -- nothing about the item. Keep the share rather than delete blind.
-                unchangedCount = unchangedCount + 1
-            else
-                sharedItems[itemKey] = nil
-                removedCount = removedCount + 1
-                if not quiet then
-                    PrintMessage(string.format("Removed missing shared item: %s [%s]", itemName, tostring(entry.sharedFrom or "-")))
-                end
-            end
+    if actualCount <= 0 then
+        if not canVerify then
+            -- That bag could not be read this session, so "not found" proves
+            -- nothing about the item. Keep the share rather than delete blind.
+            counters.unchanged = counters.unchanged + 1
         else
-            local previousCount = GetEntryOfferedCount(entry)
-            local previousLocation = tostring(entry.sharedFrom or "")
-            local previousItemKey = itemKey
-            local previousLocationKey = tostring(entry.locationKey or "")
-            local targetItemKey = tostring(currentItemKey or itemKey)
-
-            entry.heldCount = actualCount
-            entry.sharedFrom = currentLocation
-            entry.locationKey = currentLocationKey
-
-            if targetItemKey ~= itemKey then
-                sharedItems[itemKey] = nil
-                sharedItems[targetItemKey] = entry
-            else
-                sharedItems[itemKey] = entry
-            end
-
-            if previousCount ~= GetEntryOfferedCount(entry)
-                or previousLocation ~= currentLocation
-                or previousItemKey ~= targetItemKey
-                or previousLocationKey ~= currentLocationKey then
-                updatedCount = updatedCount + 1
-                if not quiet then
-                    PrintMessage(string.format("Updated shared item: %s (%d) - %s", itemName, GetEntryOfferedCount(entry), currentLocation))
-                end
-            else
-                unchangedCount = unchangedCount + 1
+            sharedItems[itemKey] = nil
+            counters.removed = counters.removed + 1
+            if not quiet then
+                PrintMessage(string.format(
+                    job.mode == "rebuild" and "Removed missing shared item during rebuild: %s [%s]" or "Removed missing shared item: %s [%s]",
+                    itemName,
+                    tostring(entry.sharedFrom or "-")
+                ))
             end
         end
+        return
     end
 
-    RefreshAlwaysShareHeldCounts(inventoryIndex)
+    local previousCount = GetEntryOfferedCount(entry)
+    local previousLocation = tostring(entry.sharedFrom or "")
+    local previousItemKey = itemKey
+    local previousLocationKey = tostring(entry.locationKey or "")
+    local targetItemKey = tostring(currentItemKey or itemKey)
+
+    local rebuiltEntry = nil
+    if job.mode == "rebuild" and currentItemData then
+        rebuiltEntry = SaveSharedEntry(currentItemData, actualCount, nil, false)
+    end
+
+    if rebuiltEntry then
+        rebuiltEntry.sharedFrom = currentLocation
+        rebuiltEntry.locationKey = currentLocationKey
+        sharedItems[targetItemKey] = rebuiltEntry
+        if targetItemKey ~= itemKey then
+            sharedItems[itemKey] = nil
+        end
+        entry = rebuiltEntry
+    else
+        entry.heldCount = actualCount
+        entry.sharedFrom = currentLocation
+        entry.locationKey = currentLocationKey
+        if targetItemKey ~= itemKey then
+            sharedItems[itemKey] = nil
+        end
+        sharedItems[targetItemKey] = entry
+    end
+
+    if previousCount ~= GetEntryOfferedCount(entry)
+        or previousLocation ~= tostring(entry.sharedFrom or "")
+        or previousItemKey ~= targetItemKey
+        or previousLocationKey ~= tostring(entry.locationKey or "") then
+        counters.updated = counters.updated + 1
+        if not quiet then
+            PrintMessage(string.format(
+                job.mode == "rebuild" and "Rebuilt shared item: %s (%d) - %s" or "Updated shared item: %s (%d) - %s",
+                itemName,
+                GetEntryOfferedCount(entry),
+                tostring(entry.sharedFrom or "-")
+            ))
+        end
+    else
+        counters.unchanged = counters.unchanged + 1
+    end
+end
+
+local function BuildReconcileJob(mode, quiet, prebuiltIndex)
+    local job = {
+        mode = mode,
+        quiet = quiet,
+        index = prebuiltIndex or BuildActualInventoryIndex(),
+        cursor = 1,
+        keys = {},
+        counters = { updated = 0, removed = 0, unchanged = 0 },
+    }
+
+    if mode == "rebuild" then
+        -- Dropped here as well as at login: whatever wrote the file, a row from the
+        -- removed placed-furniture idea must not be carried forward into the next save.
+        job.counters.removed = PruneLegacyPlacedFurnitureShares()
+    end
+
+    -- The key list is taken once: a pass renames or removes entries as it goes, and
+    -- walking the table while doing that would visit some of them twice.
+    for itemKey, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+        job.keys[#job.keys + 1] = { key = itemKey, entry = entry }
+    end
+
+    return job
+end
+
+-- One slice. Answers whether there is more to do.
+local function StepReconcileJob(job)
+    local stop = job.cursor + APPLY_ENTRIES_PER_SLICE - 1
+
+    while job.cursor <= stop and job.keys[job.cursor] do
+        local item = job.keys[job.cursor]
+        job.cursor = job.cursor + 1
+        ReconcileOneEntry(job, item.key, item.entry)
+    end
+
+    return job.cursor <= #job.keys
+end
+
+local function FinishReconcileJob(job)
+    if job.finished then
+        return
+    end
+
+    job.finished = true
+    slicingEntryWrites = false
+
+    RefreshAlwaysShareHeldCounts(job.index)
     PruneItemFirstDumpedAt()
-    ShowSyncSummary("Sync", updatedCount, removedCount, unchangedCount, quiet)
+    ShowSyncSummary(job.mode == "rebuild" and "Rebuild" or "Sync", job.counters.updated, job.counters.removed, job.counters.unchanged, job.quiet)
+
+    -- The one refresh the whole pass gets: every badge and list row repainted together,
+    -- after the shares have settled rather than once per entry.
+    TryRefreshInventoryVisuals()
     RefreshShareListWindowIfVisible()
+
+    if reconcileJob == job then
+        reconcileJob = nil
+    end
+end
+
+local function RunReconcileSlice(job)
+    if job.finished or reconcileJob ~= job then
+        return
+    end
+
+    if StepReconcileJob(job) then
+        zo_callLater(function()
+            RunReconcileSlice(job)
+        end, APPLY_PAUSE_MS)
+        return
+    end
+
+    FinishReconcileJob(job)
+end
+
+-- The sliced pass, for anything that began with a bag read. The read hands its index over
+-- and returns; the shares catch up over the next few frames instead of in one.
+local function StartSlicedReconcile(mode, quiet, prebuiltIndex)
+    if not ItemShare.savedVars then
+        return
+    end
+
+    -- One pass at a time: a pass that arrives while another is running replaces it, and
+    -- the older one stops at its next slice because its job is no longer the current one.
+    local job = BuildReconcileJob(mode, quiet, prebuiltIndex)
+    reconcileJob = job
+    slicingEntryWrites = true
+
+    if #job.keys == 0 or not zo_callLater then
+        while StepReconcileJob(job) do end
+        FinishReconcileJob(job)
+        return
+    end
+
+    RunReconcileSlice(job)
+end
+
+-- The same pass with no pauses, for the commands that answer on the spot.
+SyncSharedItemsWithInventory = function(quiet, prebuiltIndex)
+    if not ItemShare.savedVars then
+        return
+    end
+
+    local job = BuildReconcileJob("sync", quiet, prebuiltIndex)
+    while StepReconcileJob(job) do end
+    FinishReconcileJob(job)
 end
 
 RebuildSharedItemsWithInventory = function(quiet, prebuiltIndex)
-    local sharedItems = ItemShare.savedVars.sharedItems
-    local inventoryIndex = prebuiltIndex or BuildActualInventoryIndex()
-    -- Dropped here as well as at login: whatever wrote the file, a row from the
-    -- removed placed-furniture idea must not be carried forward into the next save.
-    local removedCount, updatedCount, unchangedCount = PruneLegacyPlacedFurnitureShares(), 0, 0
-
-    local snapshot = {}
-    for itemKey, entry in pairs(sharedItems) do
-        snapshot[itemKey] = entry
+    if not ItemShare.savedVars then
+        return
     end
 
-    for itemKey, entry in pairs(snapshot) do
-        local itemName = tostring(entry.itemName or "Unknown Item")
-        local actualByEntry = inventoryIndex.countsByEntryKey[itemKey]
-        local actualCount = actualByEntry and (tonumber(actualByEntry.count or 0) or 0) or 0
-        local currentLocation = actualByEntry and tostring(actualByEntry.sharedFrom or entry.sharedFrom or "-") or tostring(entry.sharedFrom or "-")
-        local currentLocationKey = actualByEntry and tostring(actualByEntry.locationKey or entry.locationKey or "") or tostring(entry.locationKey or "")
-        local currentItemKey = itemKey
-        local currentItemData = actualByEntry and actualByEntry.itemData or nil
-
-        -- A piece filed by /ishare scan stands in a house rather than in a bag, so
-        -- the bags must not claim it back: the scan of that house is its only record.
-        if actualCount == 0 and not IsPlacedLocationKey(entry.locationKey) then
-            local alternateMatch = FindAlternateSharedEntryMatch(entry, inventoryIndex)
-            if alternateMatch then
-                actualCount = tonumber(alternateMatch.count or 0) or 0
-                currentLocation = tostring(alternateMatch.sharedFrom or currentLocation or "-")
-                currentLocationKey = tostring(alternateMatch.locationKey or currentLocationKey or "")
-                currentItemKey = tostring(alternateMatch.itemKey or currentItemKey or itemKey)
-                currentItemData = alternateMatch.itemData or currentItemData
-            end
-        end
-
-        local entryLocationKey = tostring(entry.locationKey or BuildLocationKeyFromSharedFrom(entry.sharedFrom) or "")
-        local canVerify = inventoryIndex.observableLocationKeys[entryLocationKey] == true
-
-        if actualCount <= 0 then
-            if not canVerify then
-                -- Unreadable bag: keep the share until a session can see it.
-                unchangedCount = unchangedCount + 1
-            else
-                sharedItems[itemKey] = nil
-                removedCount = removedCount + 1
-                if not quiet then
-                    PrintMessage(string.format("Removed missing shared item during rebuild: %s [%s]", itemName, tostring(entry.sharedFrom or "-")))
-                end
-            end
-        else
-            local previousCount = GetEntryOfferedCount(entry)
-            local previousLocation = tostring(entry.sharedFrom or "")
-            local previousItemKey = itemKey
-            local previousLocationKey = tostring(entry.locationKey or "")
-            local targetItemKey = tostring(currentItemKey or itemKey)
-
-            local rebuiltEntry = nil
-            if currentItemData then
-                rebuiltEntry = SaveSharedEntry(currentItemData, actualCount, nil, false)
-            end
-
-            if rebuiltEntry then
-                rebuiltEntry.sharedFrom = currentLocation
-                rebuiltEntry.locationKey = currentLocationKey
-                sharedItems[targetItemKey] = rebuiltEntry
-                if targetItemKey ~= itemKey then
-                    sharedItems[itemKey] = nil
-                end
-                entry = rebuiltEntry
-            else
-                entry.heldCount = actualCount
-                entry.sharedFrom = currentLocation
-                entry.locationKey = currentLocationKey
-                if targetItemKey ~= itemKey then
-                    sharedItems[itemKey] = nil
-                    sharedItems[targetItemKey] = entry
-                else
-                    sharedItems[itemKey] = entry
-                end
-            end
-
-            if previousCount ~= GetEntryOfferedCount(entry)
-                or previousLocation ~= tostring(entry.sharedFrom or "")
-                or previousItemKey ~= targetItemKey
-                or previousLocationKey ~= tostring(entry.locationKey or "") then
-                updatedCount = updatedCount + 1
-                if not quiet then
-                    PrintMessage(string.format("Rebuilt shared item: %s (%d) - %s", itemName, GetEntryOfferedCount(entry), tostring(entry.sharedFrom or "-")))
-                end
-            else
-                unchangedCount = unchangedCount + 1
-            end
-        end
-    end
-
-    RefreshAlwaysShareHeldCounts(inventoryIndex)
-    PruneItemFirstDumpedAt()
-    ShowSyncSummary("Rebuild", updatedCount, removedCount, unchangedCount, quiet)
-    RefreshShareListWindowIfVisible()
+    local job = BuildReconcileJob("rebuild", quiet, prebuiltIndex)
+    while StepReconcileJob(job) do end
+    FinishReconcileJob(job)
 end
 
 local autoReconcilePending = false
@@ -5049,9 +5103,10 @@ local function ScheduleAutoReconcile(reason)
         lastAutoReconcileAt = (GetTimeStamp and GetTimeStamp()) or 0
         RefreshGuildSnapshot()
 
-        -- The pass is the same work as before, spread over slices instead of one frame.
+        -- The read is one job and carrying the result through is another, so the frame
+        -- that finishes reading is not the frame that rebuilds every entry.
         StartInventoryScan(function(index)
-            RebuildSharedItemsWithInventory(true, index)
+            StartSlicedReconcile("rebuild", true, index)
         end, reason)
     end, 4000)
 end
@@ -5077,7 +5132,7 @@ local function ScanBagsNow(reason)
     end
 
     StartInventoryScan(function(index)
-        RebuildSharedItemsWithInventory(false, index)
+        StartSlicedReconcile("rebuild", false, index)
     end, reason)
 end
 

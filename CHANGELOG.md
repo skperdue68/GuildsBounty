@@ -10,6 +10,23 @@ in the addon's status messages.
 
 ## Addon
 
+### 1.11.42
+- A pass is now sliced all the way through, not just over the bags. It was three pieces of
+  work - read the slots, decide what each share becomes, close the pass out - and only the
+  first was spread over frames, which left the part that actually costs (rebuilding entries,
+  writing them back, repainting badges) in the single frame that finished the read. The
+  shares are now carried through 25 at a time with 60 ms between slices, and the queued
+  slices finish the pass on their own.
+- The badges and the list are repainted once, when the pass is done, instead of on every
+  entry: `SaveSharedEntry` used to repaint every visible row each time it was called, which
+  during a rebuild of a few hundred entries was the bulk of the stall.
+- The read now says what it finished - `Bag read finished (a storage closing) - working the
+  changes through.` - and the counts line that follows is the end of the pass, rather than
+  one frame pretending to be both.
+- Commands still answer on the spot: `/ishare rebuild`, `/ishare save` and `/ishare sync`
+  run the pass in one go, and the logout read is still synchronous, because there the file
+  has to be written before the client goes.
+
 ### 1.11.41
 - A share is only ever removed from a bag that was actually read. If a bag could not be
   seen - an unopened bank, a house chest in a house you are not standing in, a guild bank
