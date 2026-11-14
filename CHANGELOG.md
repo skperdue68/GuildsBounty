@@ -10,6 +10,26 @@ in the addon's status messages.
 
 ## Addon
 
+### 1.11.44
+- **Fixed: items in the house storage chests and the furnishing vault no longer disappear
+  while you are away from the house.** A house chest and the vault are only read while you
+  are actually standing in a house. Outside one, the game can keep answering with the last
+  size it knew for those bags, and a pass that believed that size decided every item in the
+  chest had been given away: the row was removed, and the item went with it, while the chest
+  itself was untouched. Both index builders now skip a house bag unless
+  `GetCurrentZoneHouseId` says you are inside a house, and a client that cannot answer at all
+  counts as outside.
+- A share is only followed to another place when the place it was filed in could be read.
+  Finding the same item in your backpack used to move a chest row there even though the chest
+  had not been looked at, which stranded the chest copy; now the row stays where it is filed
+  until that bag is read and the item genuinely is not in it.
+- Housing storage and the furnishing vault are labelled `Housing Storage (Kitchen)` and
+  `Furnishing Vault (Lumber)`: the prefix says what kind of place it is and the brackets hold
+  the nickname you gave the chest. A chest you have not renamed reads `Housing Storage`, with
+  no brackets and no chest number, and the vault no longer shows the zone you were standing
+  in. Labels written by older versions, including `House Storage 8` and `Furnishing Vault
+  (Mournoth Keep)`, still map to the same locations, so existing shares keep their rows.
+
 ### 1.11.43
 - `/ishare scanmessages` is gone, and so is every line it turned on: a pass no longer says
   anything in chat as it starts, when it finishes reading, or at logout. The setting it wrote
