@@ -3,7 +3,7 @@ ItemShare.name = "ItemShare"
 -- Kept in step with ## Version in ItemShare.txt. Written into the saved
 -- variables so an uploaded file says which addon produced it, which is the only
 -- reliable way to answer "am I actually running the new version?".
-local ADDON_VERSION = "1.11.40"
+local ADDON_VERSION = "1.11.41"
 -- Bumped whenever the saved layout changes shape. A file written by a different
 -- number is not migrated: its tables are started over, so the file is rewritten in
 -- the current layout on the next save.
@@ -98,6 +98,7 @@ local RebuildSharedItemsWithInventory
 -- Declared here because the badge and the list rows are built before the reserve
 -- and standing-offer code they ask about runs for the first time.
 local GetItemFirstDumpedAt
+local PruneItemFirstDumpedAt
 local GetShareReserve
 local ShareableCount
 local GetAlwaysShareTable
@@ -1458,6 +1459,10 @@ PruneDepartedGuilds = function(quiet)
     for _, itemKey in ipairs(departedShareKeys) do
         sharedItems[itemKey] = nil
         removedShares = removedShares + 1
+    end
+
+    if #departedShareKeys > 0 then
+        PruneItemFirstDumpedAt()
     end
 
     local locationReserves = ItemShare.savedVars.locationReserves or {}
@@ -3198,7 +3203,11 @@ end
 
 -- A link is on record only while something is offered: a share somewhere, or a standing
 -- offer. Once neither is true the date has no meaning, and it goes with the last row.
-local function PruneItemFirstDumpedAt()
+-- The index answers for the items that are still on offer and nothing else. A share in a
+-- bag that could not be read is still a share, so its item keeps its date; only an item
+-- with no share in any place and no standing offer loses one, and it starts a new date if
+-- it is offered again later.
+PruneItemFirstDumpedAt = function()
     if not ItemShare.savedVars then
         return
     end
@@ -3681,6 +3690,9 @@ local function ScanPlacedFurnishings()
         SaveSharedEntry(itemData, copies, nil, false)
     end
 
+    -- After the pieces still standing are filed, not before: an item re-filed a line ago
+    -- has to hold on to the date it already had.
+    PruneItemFirstDumpedAt()
     RefreshShareListWindowIfVisible()
 
     local skippedParts = {}
@@ -3744,6 +3756,10 @@ local function ClearPlacedFurnishingsForCurrentHouse()
         end
     end
 
+    if cleared > 0 then
+        PruneItemFirstDumpedAt()
+    end
+
     TryRefreshInventoryVisuals()
     RefreshShareListWindowIfVisible()
 
@@ -3782,6 +3798,10 @@ local function PruneLegacyPlacedFurnitureShares()
             sharedItems[itemKey] = nil
             removed = removed + 1
         end
+    end
+
+    if removed > 0 then
+        PruneItemFirstDumpedAt()
     end
 
     return removed
@@ -3914,6 +3934,10 @@ RemoveSharesForItemLink = function(itemLink)
         ItemShare.savedVars.sharedItems[itemKey] = nil
     end
 
+    if #keys > 0 then
+        PruneItemFirstDumpedAt()
+    end
+
     return #keys
 end
 
@@ -3932,6 +3956,7 @@ RemoveAlwaysShareForItemLink = function(itemLink, locationKey)
         local existing = alwaysShare[key]
         if existing ~= nil then
             alwaysShare[key] = nil
+            PruneItemFirstDumpedAt()
         end
         return existing
     end
@@ -3942,6 +3967,10 @@ RemoveAlwaysShareForItemLink = function(itemLink, locationKey)
             alwaysShare[key] = nil
             removed = removed or entry
         end
+    end
+
+    if removed ~= nil then
+        PruneItemFirstDumpedAt()
     end
 
     return removed
@@ -4067,6 +4096,7 @@ local function RemoveAlwaysShareByName(searchText)
         places[#places + 1] = place
     end
 
+    PruneItemFirstDumpedAt()
     table.sort(places)
     TryRefreshInventoryVisuals()
     RefreshShareListWindowIfVisible()
@@ -4269,6 +4299,7 @@ function ItemShare_ToggleAlwaysShare()
 
     if existing then
         alwaysShare[key] = nil
+        PruneItemFirstDumpedAt()
         TryRefreshInventoryVisuals()
         RefreshShareListWindowIfVisible()
         PrintMessage(string.format(
