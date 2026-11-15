@@ -3,7 +3,7 @@ ItemShare.name = "ItemShare"
 -- Kept in step with ## Version in ItemShare.txt. Written into the saved
 -- variables so an uploaded file says which addon produced it, which is the only
 -- reliable way to answer "am I actually running the new version?".
-local ADDON_VERSION = "1.11.43"
+local ADDON_VERSION = "1.11.44"
 -- Bumped whenever the saved layout changes shape. A file written by a different
 -- number is not migrated: its tables are started over, so the file is rewritten in
 -- the current layout on the next save.
@@ -1588,9 +1588,37 @@ local function GetHouseStorageChestIndex(bagId)
     return 0
 end
 
+-- A house chest and the furnishing vault only hold anything while the player is standing
+-- in a house. Outside one the client can keep reporting the last size it knew, and a pass
+-- that trusts that size concludes every item in the chest has been given away - which is
+-- how shares filed in a chest disappear while the player is somewhere else.
+local function IsHouseStorageBagId(bagId)
+    for index = 1, 10 do
+        if HOUSE_STORAGE_BAGS[index] == bagId then
+            return true
+        end
+    end
+
+    return BAG_FURNITURE_VAULT ~= nil and bagId == BAG_FURNITURE_VAULT
+end
+
+-- Treated as "not in a house" when the client cannot answer, because the safe answer is
+-- the one that leaves a share alone.
+local function IsInsideAHouse()
+    if not GetCurrentZoneHouseId then
+        return false
+    end
+
+    local ok, value = pcall(GetCurrentZoneHouseId)
+    if not ok then
+        return false
+    end
+
+    return (tonumber(value) or 0) > 0
+end
+
 -- Best effort, and deliberately pcall'd: the zone name is the house name while
--- the player is inside a home, which is the difference between "the furnishing
--- vault" and "the furnishing vault in Mournoth Keep".
+-- the player is inside a home.
 local function GetCurrentZoneDisplayName()
     if not GetUnitZone then
         return ""
@@ -1625,35 +1653,36 @@ end
 -- thing that makes one findable: "House Storage 8" says nothing about what is inside it.
 -- Each chest is a collectible, so the game can name its bag - the nickname the player
 -- gave it first, then the collectible's own name, then the slot number.
-local function GetHouseStorageDisplayName(bagId, chestIndex)
-    local fallback = string.format("House Storage %d", chestIndex)
-
-    if not (GetCollectibleForBag and GetCollectibleNickname and GetCollectibleName) then
-        return fallback
+-- The nickname the player gave this bag, and nothing else. A chest the player has not
+-- renamed answers "" rather than the collectible's own name: ten chests called "Storage
+-- Chest" say nothing about which one holds what, and the point of the nickname is that the
+-- player chose it.
+local function GetBagNickname(bagId)
+    if not (GetCollectibleForBag and GetCollectibleNickname) then
+        return ""
     end
 
     local idOk, collectibleId = pcall(GetCollectibleForBag, bagId)
     if not idOk or type(collectibleId) ~= "number" or collectibleId <= 0 then
-        return fallback
+        return ""
     end
 
     local nicknameOk, nickname = pcall(GetCollectibleNickname, collectibleId)
-    if nicknameOk and type(nickname) == "string" then
-        nickname = string.gsub(nickname, "^%s*(.-)%s*$", "%1")
-        if nickname ~= "" then
-            return nickname
-        end
+    if not nicknameOk or type(nickname) ~= "string" then
+        return ""
     end
 
-    local nameOk, collectibleName = pcall(GetCollectibleName, collectibleId)
-    if nameOk and type(collectibleName) == "string" and collectibleName ~= "" then
-        local normalizedName = GetNormalizedText(collectibleName)
-        if normalizedName and normalizedName ~= "" then
-            return normalizedName
-        end
+    return (string.gsub(nickname, "^%s*(.-)%s*$", "%1"))
+end
+
+-- "Housing Storage (Kitchen)", or just "Housing Storage" when the player left it unnamed.
+local function LabelWithNickname(baseLabel, bagId)
+    local nickname = GetBagNickname(bagId)
+    if nickname ~= "" then
+        return string.format("%s (%s)", baseLabel, nickname)
     end
 
-    return fallback
+    return baseLabel
 end
 
 local function GetBagLocationInfo(bagId)
@@ -1672,15 +1701,13 @@ local function GetBagLocationInfo(bagId)
 
     local chestIndex = GetHouseStorageChestIndex(bagId)
     if chestIndex > 0 then
-        return string.format("housestorage:%d", chestIndex), GetHouseStorageDisplayName(bagId, chestIndex)
+        return string.format("housestorage:%d", chestIndex), LabelWithNickname("Housing Storage", bagId)
     end
 
     if BAG_FURNITURE_VAULT and bagId == BAG_FURNITURE_VAULT then
-        local zoneName = GetCurrentZoneDisplayName()
-        if zoneName ~= "" then
-            return "furnishingvault", string.format("Furnishing Vault (%s)", zoneName)
-        end
-        return "furnishingvault", "Furnishing Vault"
+        -- The vault is one bag with one key wherever it is opened, so its label names the
+        -- vault and its nickname - not the zone the player happened to be standing in.
+        return "furnishingvault", LabelWithNickname("Furnishing Vault", BAG_FURNITURE_VAULT)
     end
 
     return string.format("bag:%s", tostring(bagId)), string.format("Bag %s", tostring(bagId))
@@ -1699,7 +1726,8 @@ local function BuildLocationKeyFromSharedFrom(sharedFrom)
         return "bank"
     elseif value == "craft bag" then
         return "craftbag"
-    elseif string.find(value, "house storage", 1, true) == 1 then
+    elseif string.find(value, "housing storage", 1, true) == 1
+        or string.find(value, "house storage", 1, true) == 1 then
         local chestNumber = string.match(value, "^house storage (%d+)")
         if chestNumber then
             return "housestorage:" .. chestNumber
@@ -4397,10 +4425,16 @@ BuildActualInventoryIndex = function()
     local countsByLink = {}
     local locationsByLink = {}
     local observableLocationKeys = {}
+    local insideHouse = IsInsideAHouse()
 
     for _, bagId in ipairs(GetTrackedBagIds()) do
         local locationKey, locationLabel = GetBagLocationInfo(bagId)
         local bagSize = GetBagSize(bagId) or 0
+        if IsHouseStorageBagId(bagId) and not insideHouse then
+            -- Not read and not judged: see IsHouseStorageBagId. A size reported from
+            -- outside the house is not evidence of anything.
+            bagSize = 0
+        end
         if bagSize > 0 then
             -- A bag we can actually read is a bag we are allowed to judge. An
             -- unopened bank or guild bank reports size 0, and shares filed there
@@ -4481,9 +4515,14 @@ local function BuildScanUnits()
         locationsByLink = {},
     }
 
+    local insideHouse = IsInsideAHouse()
+
     for _, bagId in ipairs(GetTrackedBagIds()) do
         local locationKey, locationLabel = GetBagLocationInfo(bagId)
         local bagSize = GetBagSize(bagId) or 0
+        if IsHouseStorageBagId(bagId) and not insideHouse then
+            bagSize = 0
+        end
         if bagSize > 0 then
             -- Only a bag that can be read right now is allowed to judge an entry missing.
             index.observableLocationKeys[locationKey] = true
@@ -4821,6 +4860,9 @@ local function ReconcileOneEntry(job, itemKey, entry)
     local quiet = job.quiet
     local counters = job.counters
     local itemName = tostring(entry.itemName or "Unknown Item")
+    local entryLocationKey = tostring(entry.locationKey or BuildLocationKeyFromSharedFrom(entry.sharedFrom) or "")
+    local canVerify = inventoryIndex.observableLocationKeys[entryLocationKey] == true
+
     local actualByEntry = inventoryIndex.countsByEntryKey[itemKey]
     local actualCount = actualByEntry and (tonumber(actualByEntry.count or 0) or 0) or 0
     local currentLocation = actualByEntry and tostring(actualByEntry.sharedFrom or entry.sharedFrom or "-") or tostring(entry.sharedFrom or "-")
@@ -4830,7 +4872,11 @@ local function ReconcileOneEntry(job, itemKey, entry)
 
     -- A piece filed by /ishare scan stands in a house rather than in a bag, so
     -- the bags must not claim it back: the scan of that house is its only record.
-    if actualCount == 0 and not IsPlacedLocationKey(entry.locationKey) then
+    --
+    -- And the item is only followed to another place when the place it was filed in could
+    -- be read: if that chest was out of sight, a copy in the backpack says nothing about
+    -- whether the chest still holds one, and moving the row there would strand the chest.
+    if actualCount == 0 and canVerify and not IsPlacedLocationKey(entry.locationKey) then
         local alternateMatch = FindAlternateSharedEntryMatch(entry, inventoryIndex)
         if alternateMatch then
             actualCount = tonumber(alternateMatch.count or 0) or 0
@@ -4840,9 +4886,6 @@ local function ReconcileOneEntry(job, itemKey, entry)
             currentItemData = alternateMatch.itemData or currentItemData
         end
     end
-
-    local entryLocationKey = tostring(entry.locationKey or BuildLocationKeyFromSharedFrom(entry.sharedFrom) or "")
-    local canVerify = inventoryIndex.observableLocationKeys[entryLocationKey] == true
 
     if actualCount <= 0 then
         if not canVerify then

@@ -48,12 +48,14 @@ ItemShare keeps track of the tradeable items you are willing to hand out, so you
 [list]
 [*][b]Inventory[/b] - recorded per character, so each character keeps its own rows.
 [*][b]Bank[/b] and [b]Craft Bag[/b].
-[*][b]House storage[/b] - recorded under the name of the chest, not its number.
-[*][b]Furnishing vault[/b].
+[*][b]House storage[/b] - recorded as [i]Housing Storage (nickname)[/i].
+[*][b]Furnishing vault[/b] - recorded as [i]Furnishing Vault (nickname)[/i].
 [*][b]Guild bank[/b] - off by default. /ishare guildbank toggles it.
 [/list]
 
-[b]House storage by name.[/b] ESO lets you rename each of the ten storage chests, so a row reads [i]Materials[/i] instead of [i]House Storage 8[/i]. The chest's own name is used when you have not renamed it, and the slot number only when neither is available. Rename a chest and the next rebuild relabels its shares, and two chests given the same name stay separate rows.
+[b]House storage by nickname.[/b] ESO lets you rename each of the ten storage chests, so a row reads [i]Housing Storage (Materials)[/i] instead of [i]House Storage 8[/i]; the vault reads [i]Furnishing Vault (Lumber)[/i]. A chest or vault you have not renamed reads [i]Housing Storage[/i] or [i]Furnishing Vault[/i], with no brackets. Rename a chest and the next rebuild relabels its shares, and two chests given the same name stay separate rows.
+
+[b]Nothing in a house is read from outside it.[/b] A chest and the vault are only read while you are standing in a house. The game can keep answering with the last size it knew for them once you leave, so a pass run elsewhere leaves those rows alone instead of deciding their items are gone.
 
 [b]Furnishings for sharing live in your storage house.[/b] Keep one house as your dump and put the furnishings you are willing to give away in it.
 
