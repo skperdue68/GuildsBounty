@@ -1,6 +1,6 @@
-# Guild's Bounty
+# Guilds Bounty
 
-An ESO addon that marks tradeable items as shareable and writes them to `GuildsBountySavedVars`, which the Guild's Bounty website reads. This repository holds the addon only; the website is a separate project.
+An ESO addon that marks tradeable items as shareable and writes them to `GuildsBountySavedVars`, which the Guilds Bounty website reads. This repository holds the addon only; the website is a separate project.
 
 Requires LibCustomMenu
 
@@ -15,9 +15,9 @@ The text of the addon's page on ESOUI, both the short description and the full B
 `tools/make_expired_badge.py` redraws `media/guildsbounty_expired.dds`, the stopwatch used by `/ishare expire`. It needs Python 3 and Pillow as well; run it from the repository root with `python3 tools/make_expired_badge.py`. The game never loads it.
 
 Download and extract to your ESO AddOns Directory, so that the folder is `GuildsBounty` with
-`GuildsBounty.txt` inside it. Renamed from ItemShare: delete the old `ItemShare` folder, because
-two copies of the addon under different folder names both load. To keep the list you already
-have, rename `SavedVariables/ItemShareSavedVars.lua` to
+`GuildsBounty.txt` inside it. Delete whatever folder the addon was installed in before, because
+two copies under different folder names both load. To keep the list you already have, rename the
+saved-variables file the previous version wrote to
 `SavedVariables/GuildsBountySavedVars.lua` before you log in; otherwise the shares rebuild from
 your bags at login and standing offers and reserves start empty.
 Ensure Add on is loaded at startup
@@ -55,7 +55,7 @@ The window and the item menus cover the same ground without typing:
 
 You may add items to the shared list from Inventory, House Storage, Your Bank, or the Furnishings Vault, just right click the item and select "Add to Share" or "Remove from Share" as you desire.
 
-Two keybinds do the same two things without opening a menu. They are in the game's own keybind list - **ESC, Controls, Keybinds**, in the **Guild's Bounty** category - and both act on the item you hovered last, so hover it first. **Toggle share** shares that item from the place you are looking at, and pressing it again takes the share back off. **Toggle always share** makes it a standing offer for that place, and pressing it again stops the offer. Turning one on turns the other off, which is what the menu already does: sharing a copy replaces a standing offer of the same item, and making an offer replaces the share.
+Two keybinds do the same two things without opening a menu. They are in the game's own keybind list - **ESC, Controls, Keybinds**, in the **Guilds Bounty** category - and both act on the item you hovered last, so hover it first. **Toggle share** shares that item from the place you are looking at, and pressing it again takes the share back off. **Toggle always share** makes it a standing offer for that place, and pressing it again stops the offer. Turning one on turns the other off, which is what the menu already does: sharing a copy replaces a standing offer of the same item, and making an offer replaces the share.
 
 Home storage and the furnishing vault are labelled with the nickname you gave them: a row reads `Housing Storage (Materials)` or `Furnishing Vault (Lumber)`, and the nickname is saved with the share, so it still reads that way while you are away from home. A chest you have not renamed reads `Housing Storage` with no brackets, and the vault never shows the zone you happened to stand in. Rename a chest and the next rebuild relabels its shares; two chests given the same name stay separate rows, because the chest itself is recorded as well.
 
@@ -101,8 +101,8 @@ A reserve belongs to the item **in one place**. Set 50 on the soul gems in your 
 
 The name only has to be part of the item name, and it is refused if it matches more than one shared item. A share that is entirely inside its reserve stays marked at zero, so it comes back on its own when you acquire more - nothing has to be re-marked. Items with no reserve behave exactly as before. A reserve covers standing offers too: the list only shows one while you hold more than the reserve, and the offer comes back by itself once you do.
 
-The file also records which platform and which megaserver the account plays on; `/ishare server` shows what was captured. They are written once for the whole account rather than onto each share, because that is what they describe, and the Guild's Bounty site matches on them: a file written on the North American megaserver is only ever offered to readers on the same platform and megaserver, because nothing trades between them. The megaserver's own name is kept as the game reports it for display, and the site matches on the short form - `na`, `eu` or `pts` - since the game's name is translated into the client's language.
+The file also records which platform and which megaserver the account plays on; `/ishare server` shows what was captured. They are written once for the whole account rather than onto each share, because that is what they describe, and the Guilds Bounty site matches on them: a file written on the North American megaserver is only ever offered to readers on the same platform and megaserver, because nothing trades between them. The megaserver's own name is kept as the game reports it for display, and the site matches on the short form - `na`, `eu` or `pts` - since the game's name is translated into the client's language.
 
 Once Everything is as you want it, save the file by doing /ishare save or typing /reloadui
 
-Then open the Guild's Bounty site and upload the file there. The item list, the requests and everything that becomes of them happen on the site.
+Then open the Guilds Bounty site and upload the file there. The item list, the requests and everything that becomes of them happen on the site.

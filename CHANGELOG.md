@@ -11,24 +11,24 @@ in the addon's status messages.
 ## Addon
 
 ### 1.12.0
-- **The addon is Guild's Bounty.** The folder, the manifest and the source file are
+- **The addon is Guilds Bounty.** The folder, the manifest and the source file are
   `GuildsBounty`, the badges are `media/guildsbounty_*.dds`, the saved variables are
   `GuildsBountySavedVars`, the keybind actions are `GUILDSBOUNTY_TOGGLE_SHARE` and
   `GUILDSBOUNTY_TOGGLE_ALWAYS_SHARE`, and the messages, the chat prefix, the window names
-  and the docs all say Guild's Bounty. The repository is
+  and the docs all say Guilds Bounty. The repository is
   https://github.com/skperdue68/GuildsBounty.
-- **`/itemshare` is `/guildsbounty`.** `/ishare` is unchanged and so is every subcommand.
-  A macro that spells the long command out needs the new name.
+- **The long command is `/guildsbounty`.** `/ishare` is unchanged and so is every
+  subcommand; a macro that spells the long one out needs the new name.
 - **To keep your list, rename the saved file.** ESO reads only the name the manifest
-  declares, so this version starts empty where the old one left off. Before you log in,
-  rename `SavedVariables/ItemShareSavedVars.lua` to
-  `SavedVariables/GuildsBountySavedVars.lua`, and delete the old `ItemShare` folder from
-  `AddOns` - two copies of the addon under different folder names both load. Without the
-  renamed file the share list is rebuilt from your bags at login, while standing offers and
-  reserves are set by hand and start empty.
+  declares, so a saved file written under the previous name is ignored and this version
+  starts empty. Before you log in, rename that file to
+  `SavedVariables/GuildsBountySavedVars.lua`, and delete the folder the addon was installed
+  in before, because two copies under different folder names both load. Without the renamed
+  file the share list is rebuilt from your bags at login, while standing offers and reserves
+  are set by hand and start empty.
 - **A key you bound yourself has to be bound again.** The keybind action names changed, so
   the old binding no longer matches anything; the two actions sit in ESC - Controls -
-  Keybinds under Guild's Bounty.
+  Keybinds under Guilds Bounty.
 - The links follow the site to https://guildsbounty.perdues.me and to the GuildsBounty-Web
   repository.
 

@@ -1127,11 +1127,11 @@ end
 -- command's answer reaches chat whether or not anything else is on, and a slash command
 -- that reports nothing is a bug rather than a setting.
 PrintMessage = function(message)
-    CHAT_ROUTER:AddSystemMessage("|cD8A24F[Guild's Bounty]|r " .. tostring(message))
+    CHAT_ROUTER:AddSystemMessage("|cD8A24F[Guilds Bounty]|r " .. tostring(message))
 end
 
 local function ConfirmReloadUI()
-    local dialogName = "ITEM_SHARE_CONFIRM_RELOAD_UI"
+    local dialogName = "GUILDS_BOUNTY_CONFIRM_RELOAD_UI"
 
     if not GuildsBounty.reloadDialogRegistered then
         ZO_Dialogs_RegisterCustomDialog(dialogName, {
@@ -2326,7 +2326,7 @@ local function NotifyShareProtected(entry, source)
     end
 
     PrintMessage(string.format(
-        "%s is %s from %s, so Guild's Bounty is holding it: mailing, trading or storing it is all it will allow. %s",
+        "%s is %s from %s, so Guilds Bounty is holding it: mailing, trading or storing it is all it will allow. %s",
         tostring(entry and entry.itemName or "That item"),
         heldAs,
         tostring(entry and entry.sharedFrom or "that place"),
@@ -2581,7 +2581,7 @@ end
 -- Crafting panels own their inventories and are built when a station or the
 -- ragpicker first opens, so they are kept here and repainted with the bags: a share
 -- toggled while the deconstruction pane is open has to update in that pane too.
-local itemShareExtraListViews = {}
+local guildsBountyExtraListViews = {}
 
 -- A pass over the shares refreshes the badges and the list once, at the end, rather than
 -- once per entry: repainting every visible row is the most expensive thing a single save
@@ -2602,7 +2602,7 @@ TryRefreshInventoryVisuals = function()
         end
     end
 
-    for listView in pairs(itemShareExtraListViews) do
+    for listView in pairs(guildsBountyExtraListViews) do
         if ZO_ScrollList_RefreshVisible then
             ZO_ScrollList_RefreshVisible(listView)
         end
@@ -3055,7 +3055,7 @@ local function HookListViewDataTypes(listView)
     end
 
     if hooked then
-        itemShareExtraListViews[listView] = true
+        guildsBountyExtraListViews[listView] = true
         if ZO_ScrollList_RefreshVisible then
             ZO_ScrollList_RefreshVisible(listView)
         end

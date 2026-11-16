@@ -22,12 +22,12 @@ Uses `[b]`, `[i]`, `[size]`, `[color=#hex]`, `[url]`, `[list]` with `[*]`, `[cod
 description field.
 
 ```bbcode
-[b][size=5][color=#D4AF37]Guild's Bounty[/color][/size][/b]
+[b][size=5][color=#D4AF37]Guilds Bounty[/color][/size][/b]
 [color=#9AA0A6][i]Track what you are willing to give away. Let the website handle who asks for it.[/i][/color]
 
 [hr]
 
-Guild's Bounty keeps track of the tradeable items you are willing to hand out, so you do not have to leave things in a guild bank, post lists in chat, or remember what you promised whom. You mark an item with one right-click, the addon records it in a saved file, and you upload that file to [url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url], where other players browse what is on offer and request what they need.
+Guilds Bounty keeps track of the tradeable items you are willing to hand out, so you do not have to leave things in a guild bank, post lists in chat, or remember what you promised whom. You mark an item with one right-click, the addon records it in a saved file, and you upload that file to [url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url], where other players browse what is on offer and request what they need.
 
 [color=#E3B341][b]Requires LibCustomMenu.[/b][/color] Please install it first. The right-click entries that do all the work come from that library, and without it the addon has very little it can do.
 
@@ -79,7 +79,7 @@ Guild's Bounty keeps track of the tradeable items you are willing to hand out, s
 
 [b][size=4][color=#D4AF37]Keybinds[/color][/size][/b]
 
-Two keybinds do the same two things as the menu, on the item you hovered last: [b]Toggle share[/b] and [b]Toggle always share[/b]. Both are listed under ESC - Controls - Keybinds, in the [b]Guild's Bounty[/b] category. Hover an item and press the key to share it or make it a standing offer; press the same key again to take that back off. Turning one on turns the other off, exactly as the menu does.
+Two keybinds do the same two things as the menu, on the item you hovered last: [b]Toggle share[/b] and [b]Toggle always share[/b]. Both are listed under ESC - Controls - Keybinds, in the [b]Guilds Bounty[/b] category. Hover an item and press the key to share it or make it a standing offer; press the same key again to take that back off. Turning one on turns the other off, exactly as the menu does.
 
 [b][size=4][color=#D4AF37]Standing offers[/color][/size][/b]
 
@@ -168,7 +168,7 @@ An item's age starts when it was first shared. Re-sharing it, moving it to anoth
 
 If you would rather run your own copy, the site's source is at [url=https://github.com/skperdue68/GuildsBounty-Web]github.com/skperdue68/GuildsBounty-Web[/url]. Nothing in the addon needs it. The addon only writes the saved file.
 
-[b]Google Sheets:[/b] earlier versions of Guild's Bounty exported to Google Sheets. That is gone and is not supported. The addon now writes GuildsBountySavedVars.lua and the website does the rest.
+[b]Google Sheets:[/b] earlier versions of Guilds Bounty exported to Google Sheets. That is gone and is not supported. The addon now writes GuildsBountySavedVars.lua and the website does the rest.
 
 [b][size=4][color=#D4AF37]Notes[/color][/size][/b]
 
