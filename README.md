@@ -23,7 +23,8 @@ Ensure Add on is loaded at startup
 
 You can use commands 
 
-/gbounty or /guildsbounty to control functionality
+/gbounty or /guildsbounty to control functionality - both are the same command, and the
+examples below use the short one.
 
 /gbounty list - opens or closes the shared items window. Right-click a row there to cycle it: share it, make it a standing offer, or stop offering it.
 /gbounty reset (or clear) - clears every share and every standing offer.

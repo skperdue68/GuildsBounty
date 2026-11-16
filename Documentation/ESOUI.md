@@ -137,7 +137,8 @@ An item's age starts when it was first shared. Re-sharing it, moving it to anoth
 
 [b][size=4][color=#D4AF37]Commands[/color][/size][/b]
 
-[b]/guildsbounty[/b] or [b]/gbounty[/b]
+[b]/guildsbounty[/b] or [b]/gbounty[/b] - the same command either way; the examples here use
+[b]/gbounty[/b].
 
 [list]
 [*][b]list[/b] - open or close the shared items window
