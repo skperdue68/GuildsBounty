@@ -3,7 +3,7 @@ GuildsBounty.name = "GuildsBounty"
 -- Kept in step with ## Version in GuildsBounty.txt. Written into the saved
 -- variables so an uploaded file says which addon produced it, which is the only
 -- reliable way to answer "am I actually running the new version?".
-local ADDON_VERSION = "1.12.0"
+local ADDON_VERSION = "1.11.44"
 -- Bumped whenever the saved layout changes shape. A file written by a different
 -- number is not migrated: its tables are started over, so the file is rewritten in
 -- the current layout on the next save.
@@ -1638,7 +1638,7 @@ IsPlacedLocationKey = function(locationKey)
     return string.sub(text, 1, 7) == "placed:"
 end
 
--- Where a /ishare scan files its pieces. The zone name is the house name while the
+-- Where a /gbounty scan files its pieces. The zone name is the house name while the
 -- character is inside a home, which is what makes "Placed (Mournoth Keep)" possible;
 -- with no house there is nothing to scan and nothing is filed.
 local function GetPlacedLocationInfo(houseName)
@@ -3452,7 +3452,7 @@ end
 --
 -- Only the house the character is standing in can be read, and a piece on display
 -- says nothing about where it came from, so this is not something the addon can
--- infer safely. The player says it instead: /ishare scan in the storage house files
+-- infer safely. The player says it instead: /gbounty scan in the storage house files
 -- every non-bound furnishing standing there as Placed (<house>), one row per
 -- furnishing with the number of copies, and running it again is the record of what
 -- that house still holds.
@@ -3763,11 +3763,11 @@ local function ScanPlacedFurnishings()
     end
 
     if unboundCount > 0 or removedCount > 0 then
-        PrintMessage("Use /ishare save or /reloadui to write the change to the file.")
+        PrintMessage("Use /gbounty save or /reloadui to write the change to the file.")
     end
 end
 
--- /ishare scan clear: the way out of a house that was scanned by mistake, or one that
+-- /gbounty scan clear: the way out of a house that was scanned by mistake, or one that
 -- has stopped being the storage house. Only the house the player is standing in is
 -- touched, and only rows keyed to it - the house name is the whole key, so a row filed
 -- under another house or under a bag cannot be caught by this.
@@ -3802,7 +3802,7 @@ local function ClearPlacedFurnishingsForCurrentHouse()
     end
 
     PrintMessage(string.format(
-        "Cleared %d share%s filed under %s. Run /ishare save or /reloadui to write the change to the file.",
+        "Cleared %d share%s filed under %s. Run /gbounty save or /reloadui to write the change to the file.",
         cleared,
         cleared == 1 and "" or "s",
         placedLabel
@@ -4751,7 +4751,7 @@ local function ShowSyncSummary(actionName, updatedCount, removedCount, unchanged
     -- can be switched back on without being rewritten.
     -- PrintMessage(summary)
     if not quiet then
-        PrintMessage("Use /ishare save or /reloadui to persist changes.")
+        PrintMessage("Use /gbounty save or /reloadui to persist changes.")
     end
 end
 
@@ -4870,7 +4870,7 @@ local function ReconcileOneEntry(job, itemKey, entry)
     local currentItemKey = itemKey
     local currentItemData = actualByEntry and actualByEntry.itemData or nil
 
-    -- A piece filed by /ishare scan stands in a house rather than in a bag, so
+    -- A piece filed by /gbounty scan stands in a house rather than in a bag, so
     -- the bags must not claim it back: the scan of that house is its only record.
     --
     -- And the item is only followed to another place when the place it was filed in could
@@ -5748,25 +5748,25 @@ end
 -- each carried their own copy of it, which is how a command that works - guildbank - ends
 -- up missing from the help, and how a line that made no sense survived in both copies.
 local function PrintCommandHelp()
-    PrintMessage("Commands:")
-    PrintMessage("/guildsbounty list      - Open the shared items window")
-    PrintMessage("/guildsbounty reset     - Clear all shared entries")
-    PrintMessage("/guildsbounty sync      - Recount and drop shares you no longer own, in bags that are readable now")
-    PrintMessage("/guildsbounty rebuild   - Rewrite every shared item from your current bags (also runs on login and when a storage closes)")
-    PrintMessage("/guildsbounty save      - Reload the UI")
-    PrintMessage("/guildsbounty guilds    - Show the guilds this character's shares are matched against")
-    PrintMessage("/guildsbounty always    - List the items you always offer, in or out of your bags")
-    PrintMessage("/guildsbounty noalways  - Stop always sharing one: /guildsbounty noalways <part of the name>")
-    PrintMessage("/guildsbounty reserve N <name> - Share only what you hold above N of that item")
-    PrintMessage("/guildsbounty noreserve <name> - Share everything you hold of that item again")
-    PrintMessage("/guildsbounty reserves  - List the items you keep a reserve on")
-    PrintMessage("/guildsbounty expire N  - Show a stopwatch on shares older than N days (0 turns it off)")
-    PrintMessage("/guildsbounty server    - Show the platform and megaserver this file is recorded for")
-    PrintMessage("/guildsbounty guildbank - Turn sharing from the guild bank on or off (the bag is only read while this is on)")
-    PrintMessage("/guildsbounty scan      - Share every unbound furnishing placed in the house you own and are standing in (same as scan house)")
-    PrintMessage("/guildsbounty scan clear - Clear every share filed as Placed (<house>) for the house you are standing in")
-    PrintMessage("/guildsbounty autoscan  - Turn the reads that happen on their own on or off: /guildsbounty autoscan on|off")
-    PrintMessage("/guildsbounty protect   - Turn the lock on a shared copy on or off: mailing and trading still work")
+    PrintMessage("Commands (/gbounty or /guildsbounty, the same either way):")
+    PrintMessage("/gbounty list      - Open the shared items window")
+    PrintMessage("/gbounty reset     - Clear all shared entries")
+    PrintMessage("/gbounty sync      - Recount and drop shares you no longer own, in bags that are readable now")
+    PrintMessage("/gbounty rebuild   - Rewrite every shared item from your current bags (also runs on login and when a storage closes)")
+    PrintMessage("/gbounty save      - Reload the UI")
+    PrintMessage("/gbounty guilds    - Show the guilds this character's shares are matched against")
+    PrintMessage("/gbounty always    - List the items you always offer, in or out of your bags")
+    PrintMessage("/gbounty noalways  - Stop always sharing one: /guildsbounty noalways <part of the name>")
+    PrintMessage("/gbounty reserve N <name> - Share only what you hold above N of that item")
+    PrintMessage("/gbounty noreserve <name> - Share everything you hold of that item again")
+    PrintMessage("/gbounty reserves  - List the items you keep a reserve on")
+    PrintMessage("/gbounty expire N  - Show a stopwatch on shares older than N days (0 turns it off)")
+    PrintMessage("/gbounty server    - Show the platform and megaserver this file is recorded for")
+    PrintMessage("/gbounty guildbank - Turn sharing from the guild bank on or off (the bag is only read while this is on)")
+    PrintMessage("/gbounty scan      - Share every unbound furnishing placed in the house you own and are standing in (same as scan house)")
+    PrintMessage("/gbounty scan clear - Clear every share filed as Placed (<house>) for the house you are standing in")
+    PrintMessage("/gbounty autoscan  - Turn the reads that happen on their own on or off: /guildsbounty autoscan on|off")
+    PrintMessage("/gbounty protect   - Turn the lock on a shared copy on or off: mailing and trading still work")
     PrintMessage("Right-click an item - Add to Share, Always Share This Item, Share Reserve")
 end
 
@@ -5887,7 +5887,7 @@ local function OnSlashCommand(arg)
             isOn and "on" or "off",
             isOn
                 and "The bags are read at login, on a zone change, when a storage closes, and at logout."
-                or "Nothing is read on its own now. /ishare rebuild reads them when you ask, and /ishare sync still works."
+                or "Nothing is read on its own now. /gbounty rebuild reads them when you ask, and /gbounty sync still works."
         ))
     else
         PrintCommandHelp()
@@ -5957,7 +5957,7 @@ local function OnAddonLoaded(event, addonName)
     local legacyPlacedShares = PruneLegacyPlacedFurnitureShares()
     if legacyPlacedShares > 0 then
         PrintMessage(string.format(
-            "Removed %d share%s that were filed as placed furniture. Run /ishare scan in your storage house to file them again.",
+            "Removed %d share%s that were filed as placed furniture. Run /gbounty scan in your storage house to file them again.",
             legacyPlacedShares,
             legacyPlacedShares == 1 and "" or "s"
         ))
@@ -6006,7 +6006,7 @@ local function OnAddonLoaded(event, addonName)
     -- a dozen client calls per slot. Doing it because a slot changed - which is every
     -- pickup, sale, split and loot - kept the client busy while the player was playing. A
     -- count can now be a zone out of date, and a share whose place emptied re-files itself
-    -- on the next read rather than the same second; /ishare sync asks for it sooner.
+    -- on the next read rather than the same second; /gbounty sync asks for it sooner.
     --
     -- The bank, the guild bank, each house chest and the furnishing vault only hold their
     -- items while their window is open: an unopened one reports no slots, and a pass that
@@ -6085,4 +6085,4 @@ EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_ADD_ON_LOADED, OnAddonLo
 -- is enabled, so the command exists as soon as the addon does, and a setup error later
 -- in the handler can no longer leave the player with a slash command that does nothing.
 SLASH_COMMANDS["/guildsbounty"] = OnSlashCommand
-SLASH_COMMANDS["/ishare"] = OnSlashCommand
+SLASH_COMMANDS["/gbounty"] = OnSlashCommand
