@@ -1,9 +1,9 @@
-## Title: ItemShare
+## Title: GuildsBounty
 ## Author: evainefaye
 ## Version: 1.11.44
 ## APIVersion: 101051
-## SavedVariables: ItemShareSavedVars
+## SavedVariables: GuildsBountySavedVars
 ## DependsOn: LibCustomMenu>=7.3.0
 
-ItemShare.lua
+GuildsBounty.lua
 Bindings.xml
