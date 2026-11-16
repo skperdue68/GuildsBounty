@@ -17,8 +17,9 @@ in the addon's status messages.
   `GUILDSBOUNTY_TOGGLE_ALWAYS_SHARE`, and the messages, the chat prefix, the window names
   and the docs all say Guilds Bounty. The repository is
   https://github.com/skperdue68/GuildsBounty.
-- **The long command is `/guildsbounty`.** `/ishare` is unchanged and so is every
-  subcommand; a macro that spells the long one out needs the new name.
+- **The commands are `/gbounty` and `/guildsbounty`.** Both do the same thing and every
+  subcommand is unchanged. The short command the addon used before this release is no longer
+  registered, so a macro that types it needs one of the two names.
 - **The saved variables are `GuildsBountySavedVars`.** ESO reads only the name the manifest
   declares, so a file written under the previous name is not read: the share list rebuilds
   from your bags at login, and standing offers and reserves, which are set by hand, start
@@ -50,13 +51,13 @@ in the addon's status messages.
   (Mournoth Keep)`, still map to the same locations, so existing shares keep their rows.
 
 ### 1.11.43
-- `/ishare scanmessages` is gone, and so is every line it turned on: a pass no longer says
+- `/gbounty scanmessages` is gone, and so is every line it turned on: a pass no longer says
   anything in chat as it starts, when it finishes reading, or at logout. The setting it wrote
   to the saved file is no longer saved either, so a file written by an older version simply
   drops it on its next save.
-- `/ishare scan bags` is gone. A pass now runs on its own when a storage closes, at login, on
-  a zone change and at logout, and `/ishare rebuild` still does the same work on demand.
-- `/ishare scan raw` (and its `/ishare raw` alias) is gone. It was added to tell a slow read
+- `/gbounty scan bags` is gone. A pass now runs on its own when a storage closes, at login, on
+  a zone change and at logout, and `/gbounty rebuild` still does the same work on demand.
+- `/gbounty scan raw` (and its `/gbounty raw` alias) is gone. It was added to tell a slow read
   from slow work after it, which it did, and the answer moved the work into slices.
 - The help line for `rebuild` said it runs "when a bank opens"; it says "when a storage
   closes", which is what it has done since 1.11.39.
@@ -74,7 +75,7 @@ in the addon's status messages.
 - The read now says what it finished - `Bag read finished (a storage closing) - working the
   changes through.` - and the counts line that follows is the end of the pass, rather than
   one frame pretending to be both.
-- Commands still answer on the spot: `/ishare rebuild`, `/ishare save` and `/ishare sync`
+- Commands still answer on the spot: `/gbounty rebuild`, `/gbounty save` and `/gbounty sync`
   run the pass in one go, and the logout read is still synchronous, because there the file
   has to be written before the client goes.
 
@@ -121,10 +122,10 @@ in the addon's status messages.
   clears it, and the stopwatch badge asks the table by item.
 
 ### 1.11.38
-- `/ishare scan raw` reads every bag it can see and keeps nothing: no share is written, nothing is
+- `/gbounty scan raw` reads every bag it can see and keeps nothing: no share is written, nothing is
   compared, no pass is scheduled. It reports which bags were readable, how long each took, how many
   slots and items it walked, and the total, so a slow read can be told apart from slow work after it.
-  `/ishare raw` means the same thing.
+  `/gbounty raw` means the same thing.
 - The date an item went on offer belongs to the item, not to the place a copy was found. It is now
   stored once, keyed by the item link, and each share only carries a copy of it for the file the
   website reads - so sharing the same thing from a second bag, or moving a copy between the bank and
@@ -136,15 +137,15 @@ in the addon's status messages.
   the first read on.
 
 ### 1.11.37
-- Automatic bag reads can be turned off: `/ishare autoscan` toggles them, `/ishare autoscan off`
-  and `/ishare autoscan on` say which way. Off, nothing is read at login, on a zone change, when a
+- Automatic bag reads can be turned off: `/gbounty autoscan` toggles them, `/gbounty autoscan off`
+  and `/gbounty autoscan on` say which way. Off, nothing is read at login, on a zone change, when a
   storage becomes readable or at logout, and only a command reads your bags - which is what to try
   while chasing a client that locks up with this addon loaded.
-- `/ishare scan bags` reads your bags and rewrites every share from what is in them, on request, in
-  the same slices an automatic read uses so nothing hitches. `/ishare rebuild` still does the same
+- `/gbounty scan bags` reads your bags and rewrites every share from what is in them, on request, in
+  the same slices an automatic read uses so nothing hitches. `/gbounty rebuild` still does the same
   work in a single go.
-- `/ishare scan` still shares the furnishings placed in the house you are standing in, and
-  `/ishare scan house` now says that out loud; `scan clear` is unchanged.
+- `/gbounty scan` still shares the furnishings placed in the house you are standing in, and
+  `/gbounty scan house` now says that out loud; `scan clear` is unchanged.
 
 ### 1.11.36
 - Items in a bank, a house chest, the furnishing vault or the guild bank are seen again. Those
@@ -159,14 +160,14 @@ in the addon's status messages.
   that session keep what the file already said about them rather than losing it.
 - Every read says so in chat as it starts and as it ends, and the first line says how many bags it
   could see - a read that can see three places is not the same read as one that can see sixteen, and
-  an unopened bank counts as none. `/ishare scanmessages` turns the lines off.
+  an unopened bank counts as none. `/gbounty scanmessages` turns the lines off.
 - The guild bank is only read while guild bank sharing is on. Nothing can be filed there otherwise,
   and it is one more bag walked on every pass.
 
 ### 1.11.35
 - The addon reads your bags at login and when you change zone, and nowhere else. It used to read them
   whenever a slot changed - every pickup, sale, stack split and loot - which meant the most expensive
-  thing it does ran while you were playing. A count can now be a zone out of date; `/ishare sync` asks
+  thing it does ran while you were playing. A count can now be a zone out of date; `/gbounty sync` asks
   for it immediately.
 - The badges cost almost nothing to keep on screen. Every item control the game binds was being
   re-drawn, re-anchored and re-textured even when nothing about it had changed, and a list rebinds
@@ -204,8 +205,8 @@ in the addon's status messages.
 - Rows cost nothing to skip when there is nothing to draw: with no shares, offers or reserves, the
   marker code answers with one table lookup instead of building and anchoring a badge per item
   control the game binds - which is every row of every list you open.
-- The explicit commands still scan in one go: `/ishare sync`, `/ishare rebuild` and `/ishare save`
-  are things you asked for and then wait on, and `/ishare save` reloads the UI straight after, so
+- The explicit commands still scan in one go: `/gbounty sync`, `/gbounty rebuild` and `/gbounty save`
+  are things you asked for and then wait on, and `/gbounty save` reloads the UI straight after, so
   its pass has to be finished before the prompt appears.
 
 ### 1.11.31
@@ -249,7 +250,7 @@ in the addon's status messages.
 
 ### 1.11.27
 - The line printed when a shared copy refuses an action no longer ends by sending you to
-  `/ishare list` to right-click a row. It names the item and the place, says mailing or trading is
+  `/gbounty list` to right-click a row. It names the item and the place, says mailing or trading is
   all it will allow, and stops there: "Remove the share to use it", or "Stop always sharing it to
   use it" for a standing offer.
 
@@ -268,7 +269,7 @@ in the addon's status messages.
   offered to everyone, and was protected by nothing: the offer survived the sale that the share
   would have refused. The offer is looked up in the place it was marked in and locked the same
   way, so only mailing and trading are left.
-- Stopping the offer releases the copy, exactly as removing a share does, and `/ishare protect`
+- Stopping the offer releases the copy, exactly as removing a share does, and `/gbounty protect`
   still turns the whole lock off.
 - The refusal message now says which of the two is holding the item - "shared from" or "always
   shared from" - because the two are released from the same row but not by the same click.
@@ -285,7 +286,7 @@ in the addon's status messages.
   marking it as junk or locked, reporting it - and splitting a stack is allowed, because both
   halves carry the same item link and stay protected.
 - The message names the item and the place it is shared from, and says the way out: remove the
-  share in `/ishare list`.
+  share in `/gbounty list`.
 
 ### 1.11.23
 - A share actually refuses to be sold now. The guard asked the game for
@@ -314,22 +315,22 @@ in the addon's status messages.
   reminder. The automatic pass on login, bank access, bag changes and trades no longer
   announces `Shared items refreshed after <reason>` either.
 - Both lines are kept in the source, commented out, so they can be turned back on without
-  being rewritten. The `Use /ishare save or /reloadui` reminder after an explicit
-  `/ishare rebuild` still prints.
+  being rewritten. The `Use /gbounty save or /reloadui` reminder after an explicit
+  `/gbounty rebuild` still prints.
 
 ### 1.11.20
-- `/ishare scan` says "Scanning, one moment..." before it reads the house, so the pause on a
+- `/gbounty scan` says "Scanning, one moment..." before it reads the house, so the pause on a
   full house is not a silent one, and finishes with "Scan complete: N unbound items found in
   <house>", naming bound, collectible and unreadable pieces on the same line when there are any.
 - The one-line-per-piece output is gone, and with it the per-piece placed id and bound state.
   Bound, collectible and unreadable pieces are counted, not narrated.
 - The bag index a placed piece falls back to is built once per scan instead of once per piece,
   which was most of the pause on a big house.
-- `/ishare scan clear` (or `scan reset`) removes every share filed as `Placed (<house>)` for the
+- `/gbounty scan clear` (or `scan reset`) removes every share filed as `Placed (<house>)` for the
   house you are standing in, so a house scanned by mistake, or one that is no longer the storage
   house, can be taken back out of the file in one go. Other houses and bag rows are left alone.
 - The house messages no longer say "nothing was scanned" when the command was a clear, and the
-  documentation covers `/ishare scan` and `/ishare scan clear` together: one house kept as an
+  documentation covers `/gbounty scan` and `/gbounty scan clear` together: one house kept as an
   item dump, scanned to offer what is in it, cleared when it should not be offered any more.
 
 ### 1.11.17
@@ -344,7 +345,7 @@ in the addon's status messages.
   distinguishable from a call that was never made or one that raised.
 
 ### 1.11.16
-- `/ishare scan` reads placed furniture the way the housing API actually works: pieces are
+- `/gbounty scan` reads placed furniture the way the housing API actually works: pieces are
   enumerated by id with `GetNextPlacedHousingFurnitureId`, and each id is asked for its own
   name, icon, furniture data id and link. The old code counted with a `GetPlacedFurnitureCount`
   pair that does not exist, then read the data id out of the icon's slot, so every piece was
@@ -370,20 +371,20 @@ in the addon's status messages.
 
 ### 1.11.13
 - Every message goes through one function that posts a coloured `[GuildsBounty]` system
-  message, the way GuildSync does. The old sink was gated on `/ishare debug` and called a
+  message, the way GuildSync does. The old sink was gated on `/gbounty debug` and called a
   `d()` helper this file no longer defines, so command output was being dropped instead of
   shown - a command that printed nothing really had printed nothing.
 - The scan report uses the same function now, so a scan, a sync, a reserve change and the
   command list all appear in chat without any setting to find first.
-- `/ishare debug` is gone, along with the saved `debugEnabled` flag it set: messages are
+- `/gbounty debug` is gone, along with the saved `debugEnabled` flag it set: messages are
   always shown now, so the command had nothing left to control.
 
 ### 1.11.12
-- `/ishare scan` now says why it did nothing: outside a house it reports that it only
+- `/gbounty scan` now says why it did nothing: outside a house it reports that it only
   reads the house you are standing in, and in someone else's house it names the owner and
   refuses, since a piece there is not yours to offer. Both checks use the house id and
   the house owner, not the zone name.
-- The scan report no longer depends on `/ishare debug` being on. It was being written
+- The scan report no longer depends on `/gbounty debug` being on. It was being written
   through the debug-only message path, which is why a scan in a house could look like it
   had not run at all.
 
@@ -429,13 +430,13 @@ in the addon's status messages.
   copy nothing was shared from is untouched. Standing offers lock nothing.
 - Selling is refused at the slot action the vendor builds, and deconstruction at the
   primary action the panel runs, so a shared piece cannot be added to the
-  deconstruction selection. `/ishare protect` turns the guard off.
+  deconstruction selection. `/gbounty protect` turns the guard off.
 
 ### 1.11.7
 - Placed furniture is no longer inferred. The addon used to guess, on every sync, that
   a furnishing missing from a readable bag might be standing in whichever house you
   happened to be in, and it relabelled shares on that guess. That is gone.
-- `/ishare scan` replaces it, and it is explicit: stand in your storage house and run
+- `/gbounty scan` replaces it, and it is explicit: stand in your storage house and run
   it, and every non-bound furnishing placed in that house is shared as
   `Placed (<house>)`, one row per furnishing with the number of copies standing there.
 - The scan is the record for that house, so a piece you picked up is taken back by the
@@ -446,13 +447,13 @@ in the addon's status messages.
   more to tell a piece that had been picked up from one that was never placed.
 
 ### 1.11.6
-- `/ishare expire <days>` puts a stopwatch badge on every share that has been on offer
+- `/gbounty expire <days>` puts a stopwatch badge on every share that has been on offer
   that many days or more. It takes the share gift's place in the icon's corner instead
   of being drawn beside it, in the bags, the bank, house storage and the shared items
   window.
 - The limit is one saved setting, read whenever a badge is painted, so it applies by
-  itself after a reload and to whatever you open next. `/ishare expire 0` turns it off,
-  and `/ishare expire` on its own reports the limit and how many shares are past it.
+  itself after a reload and to whatever you open next. `/gbounty expire 0` turns it off,
+  and `/gbounty expire` on its own reports the limit and how many shares are past it.
 - Age comes from the date a share was first made, which survives re-sharing, moving and
   syncing: only removing a share and making it again restarts the clock. Nothing is
   hidden or removed by the limit.
@@ -474,7 +475,7 @@ in the addon's status messages.
 ### 1.11.3
 - Home storage is recorded under the chest's name, so a row reads `Materials` instead of
   `House Storage 8`. Renaming a chest relabels its shares on the next rebuild.
-- The `/ishare sync` summary says what its kept-furnishings count means.
+- The `/gbounty sync` summary says what its kept-furnishings count means.
 
 ### 1.11.2
 - The reserve-only badge generator (`tools/make_reserve_only_badge.py`) is kept in the
@@ -581,7 +582,7 @@ in the addon's status messages.
   login, and sign-in covers Discord and Google.
 
 ### 1.2.7
-- The file name the upload instructions ask for was corrected, `/ishare debug` was fixed,
+- The file name the upload instructions ask for was corrected, `/gbounty debug` was fixed,
   and dead code was removed.
 
 ### 1.2.6
