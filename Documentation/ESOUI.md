@@ -17,21 +17,17 @@ you are offering and request it.
 
 ## Full description
 
-Uses `[b]`, `[i]`, `[size]`, `[color=#hex]`, `[url]`, `[list]` with `[*]`, `[code]` and
-`[hr]` only, all of which ESOUI renders. Paste the block as it stands into the
+Uses `[b]`, `[i]`, `[size]`, `[color=#hex]`, `[url]`, `[list]` with `[*]` and
+`[code]` only, all of which ESOUI renders. Paste the block as it stands into the
 description field.
 
 ```bbcode
 [b][size=5][color=#D4AF37]Guilds Bounty[/color][/size][/b]
 [color=#9AA0A6][i]Track what you are willing to give away. Let the website handle who asks for it.[/i][/color]
 
-[hr]
-
 Guilds Bounty keeps track of the tradeable items you are willing to hand out, so you do not have to leave things in a guild bank, post lists in chat, or remember what you promised whom. You mark an item with one right-click, the addon records it in a saved file, and you upload that file to [url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url], where other players browse what is on offer and request what they need.
 
 [color=#E3B341][b]Requires LibCustomMenu.[/b][/color] Please install it first. The right-click entries that do all the work come from that library, and without it the addon has very little it can do.
-
-[hr]
 
 [b][size=4][color=#D4AF37]How it works[/color][/size][/b]
 
@@ -133,8 +129,6 @@ An item's age starts when it was first shared. Re-sharing it, moving it to anoth
 [*]The file records which platform and which megaserver the account plays on, and the site matches on them. A file written on the North American megaserver is only offered to readers on the same platform and megaserver, because nothing trades between them.
 [/list]
 
-[hr]
-
 [b][size=4][color=#D4AF37]Commands[/color][/size][/b]
 
 [b]/guildsbounty[/b] or [b]/gbounty[/b] - the same command either way; the examples here use
@@ -161,8 +155,6 @@ An item's age starts when it was first shared. Re-sharing it, moving it to anoth
 [*][b]server[/b] - show the platform and megaserver this file is recorded for
 [/list]
 
-[hr]
-
 [b][size=4][color=#D4AF37]The website[/color][/size][/b]
 
 [url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url] is open to anyone. Upload your GuildsBountySavedVars.lua, then browse what other players are offering and request what you need. There is a demo mode if you want to look around before uploading your own file.
@@ -174,7 +166,7 @@ If you would rather run your own copy, the site's source is at [url=https://gith
 [b][size=4][color=#D4AF37]Notes[/color][/size][/b]
 
 [list]
-[*]Version 1.11.43, API 101051. Requires LibCustomMenu 7.3.0 or newer.
+[*]Version 1.12.0, API 101051. Requires LibCustomMenu 7.3.0 or newer.
 [*]The saved file has a format version, and a file written by another one is not carried forward. Your shares come back from your bags on the next rebuild, but standing offers and reserves are set by hand rather than read from a bag, so they start empty.
 [*]Parts of the addon were written with AI assistance and it is still being tidied up.
 [*]Addon source: [url=https://github.com/skperdue68/GuildsBounty]github.com/skperdue68/GuildsBounty[/url]
