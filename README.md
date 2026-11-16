@@ -1,6 +1,6 @@
 # Guilds Bounty
 
-An ESO addon that marks tradeable items as shareable and writes them to `GuildsBountySavedVars`, which the Guilds Bounty website reads. This repository holds the addon only; the website is a separate project.
+An ESO addon that marks tradeable items as shareable and writes them to `GuildsBounty.lua' in your SavedVariables Directory, which the Guilds Bounty website reads. This repository holds the addon only; the website is a separate project.
 
 Requires LibCustomMenu
 
@@ -8,16 +8,8 @@ The upload site that turns your saved file into a shareable list is a separate
 project: https://github.com/skperdue68/GuildsBounty-Web. Nothing in this repository
 needs it; the addon only writes GuildsBountySavedVars.lua.
 
-The text of the addon's page on ESOUI, both the short description and the full BBCode description, is kept in [Documentation/ESOUI.md](Documentation/ESOUI.md).
-
-`tools/make_reserve_only_badge.py` redraws `media/guildsbounty_reserve_only.dds`, the badge for a reserve left on an item that is not shared at all.
-
-`tools/make_expired_badge.py` redraws `media/guildsbounty_expired.dds`, the stopwatch used by `/gbounty expire`. It needs Python 3 and Pillow as well; run it from the repository root with `python3 tools/make_expired_badge.py`. The game never loads it.
-
 Download and extract to your ESO AddOns Directory, so that the folder is `GuildsBounty` with
-`GuildsBounty.txt` inside it. Two copies of the addon under different folder names both load, so
-keep only this one. It writes `SavedVariables/GuildsBountySavedVars.lua`; a file under the name an
-older version used is not read.
+`GuildsBounty.txt` inside it. 
 Ensure Add on is loaded at startup
 
 
