@@ -2,7 +2,7 @@
 """Draws the stopwatch badge for a share that has been on offer too long.
 
 The share badge is a parcel; this one takes its place, in the same corner at the same
-size, when a share is older than /itemshare expire <days>. A red ring around a pale
+size, when a share is older than /guildsbounty expire <days>. A red ring around a pale
 face reads as "time is up" at 16 px, which is the size that matters: the crown and the
 hand are there for the 64 px source and for anyone who opens the file.
 
@@ -10,8 +10,8 @@ Run it from the repository root:
 
     python3 tools/make_expired_badge.py
 
-It needs Python 3 and Pillow, and writes media/itemshare_expired.dds, which the addon
-loads, plus a media/itemshare_expired.png preview beside it. The preview is not
+It needs Python 3 and Pillow, and writes media/guildsbounty_expired.dds, which the addon
+loads, plus a media/guildsbounty_expired.png preview beside it. The preview is not
 tracked and the game never runs this file; it is here so the texture can be rebuilt
 from source rather than redrawn by hand, the same way
 tools/make_reserve_only_badge.py does for the reserve-only tag.
@@ -137,8 +137,8 @@ def main():
     media = root / "media"
     badge = draw_badge()
 
-    png_path = media / "itemshare_expired.png"
-    dds_path = media / "itemshare_expired.dds"
+    png_path = media / "guildsbounty_expired.png"
+    dds_path = media / "guildsbounty_expired.dds"
     badge.save(png_path)
     dds_path.write_bytes(dds_bytes(badge))
 

@@ -22,7 +22,7 @@ Uses `[b]`, `[i]`, `[size]`, `[color=#hex]`, `[url]`, `[list]` with `[*]`, `[cod
 description field.
 
 ```bbcode
-[b][size=5][color=#D4AF37]ItemShare[/color][/size][/b]
+[b][size=5][color=#D4AF37]Guilds Bounty[/color][/size][/b]
 [color=#9AA0A6][i]Track what you are willing to give away. Let the website handle who asks for it.[/i][/color]
 
 [hr]
@@ -37,10 +37,10 @@ Guilds Bounty keeps track of the tradeable items you are willing to hand out, so
 
 [list]
 [*]Right-click an item in your bags, your bank, a house storage chest or the furnishing vault and choose [b]Add to Share[/b].
-[*]The item goes into [b]ItemShareSavedVars[/b], an account-wide saved-variables file, along with its link, name, quality, trait, type, stack count, where it is, the character it came from and that character's guilds.
+[*]The item goes into [b]GuildsBountySavedVars[/b], an account-wide saved-variables file, along with its link, name, quality, trait, type, stack count, where it is, the character it came from and that character's guilds.
 [*]The addon keeps that file current by itself. It rewrites your shares a few seconds after a character loads and whenever a bank opens or closes, and it drops shares it can prove are gone from a bag it is able to read.
 [*]When the list is the way you want it, [b]/ishare save[/b] (or /reloadui) writes the file to disk.
-[*]Upload the file at [url=https://itemshare.perdues.me]itemshare.perdues.me[/url]. Browsing, requests and everything that follows a request happen on the site. The addon does not handle requests in game.
+[*]Upload the file at [url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url]. Browsing, requests and everything that follows a request happen on the site. The addon does not handle requests in game.
 [/list]
 
 [b][size=4][color=#D4AF37]What can be shared, and from where[/color][/size][/b]
@@ -79,7 +79,7 @@ Guilds Bounty keeps track of the tradeable items you are willing to hand out, so
 
 [b][size=4][color=#D4AF37]Keybinds[/color][/size][/b]
 
-Two keybinds do the same two things as the menu, on the item you hovered last: [b]Toggle share[/b] and [b]Toggle always share[/b]. Both are listed under ESC - Controls - Keybinds, in the [b]ItemShare[/b] category. Hover an item and press the key to share it or make it a standing offer; press the same key again to take that back off. Turning one on turns the other off, exactly as the menu does.
+Two keybinds do the same two things as the menu, on the item you hovered last: [b]Toggle share[/b] and [b]Toggle always share[/b]. Both are listed under ESC - Controls - Keybinds, in the [b]Guilds Bounty[/b] category. Hover an item and press the key to share it or make it a standing offer; press the same key again to take that back off. Turning one on turns the other off, exactly as the menu does.
 
 [b][size=4][color=#D4AF37]Standing offers[/color][/size][/b]
 
@@ -137,7 +137,7 @@ An item's age starts when it was first shared. Re-sharing it, moving it to anoth
 
 [b][size=4][color=#D4AF37]Commands[/color][/size][/b]
 
-[b]/itemshare[/b] or [b]/ishare[/b]
+[b]/guildsbounty[/b] or [b]/ishare[/b]
 
 [list]
 [*][b]list[/b] - open or close the shared items window
@@ -164,11 +164,11 @@ An item's age starts when it was first shared. Re-sharing it, moving it to anoth
 
 [b][size=4][color=#D4AF37]The website[/color][/size][/b]
 
-[url=https://itemshare.perdues.me]itemshare.perdues.me[/url] is open to anyone. Upload your ItemShareSavedVars.lua, then browse what other players are offering and request what you need. There is a demo mode if you want to look around before uploading your own file.
+[url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url] is open to anyone. Upload your GuildsBountySavedVars.lua, then browse what other players are offering and request what you need. There is a demo mode if you want to look around before uploading your own file.
 
-If you would rather run your own copy, the site's source is at [url=https://github.com/skperdue68/ItemShare-Web]github.com/skperdue68/ItemShare-Web[/url]. Nothing in the addon needs it. The addon only writes the saved file.
+If you would rather run your own copy, the site's source is at [url=https://github.com/skperdue68/GuildsBounty-Web]github.com/skperdue68/GuildsBounty-Web[/url]. Nothing in the addon needs it. The addon only writes the saved file.
 
-[b]Google Sheets:[/b] earlier versions of ItemShare exported to Google Sheets. That is gone and is not supported. The addon now writes ItemShareSavedVars.lua and the website does the rest.
+[b]Google Sheets:[/b] earlier versions of Guilds Bounty exported to Google Sheets. That is gone and is not supported. The addon now writes GuildsBountySavedVars.lua and the website does the rest.
 
 [b][size=4][color=#D4AF37]Notes[/color][/size][/b]
 
@@ -176,6 +176,6 @@ If you would rather run your own copy, the site's source is at [url=https://gith
 [*]Version 1.11.43, API 101051. Requires LibCustomMenu 7.3.0 or newer.
 [*]The saved file has a format version, and a file written by another one is not carried forward. Your shares come back from your bags on the next rebuild, but standing offers and reserves are set by hand rather than read from a bag, so they start empty.
 [*]Parts of the addon were written with AI assistance and it is still being tidied up.
-[*]Addon source: [url=https://github.com/skperdue68/ItemShare]github.com/skperdue68/ItemShare[/url]
+[*]Addon source: [url=https://github.com/skperdue68/GuildsBounty]github.com/skperdue68/GuildsBounty[/url]
 [/list]
 ```
