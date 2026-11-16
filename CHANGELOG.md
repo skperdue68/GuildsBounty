@@ -3,10 +3,10 @@
 ## Add-on
 
 ### 1.12.0
-- Renamed to Guilds Bounty: the folder, the addon file and the saved file are `GuildsBounty`, `GuildsBounty.lua` and `GuildsBountySavedVars`.
-- Shares come back from your bags at login. Standing offers and reserves start empty, and a key you bound yourself has to be bound again.
-- The commands are `/gbounty` and `/guildsbounty`; the old `/ishare` is gone.
-- Fixed items in the house storage chests and the furnishing vault going missing from the list while you were away from the house.
+- Renamed to Guilds Bounty: the folder, the addon file and the saved file are `GuildsBounty`, `GuildsBounty.lua` and `GuildsBountySavedVars`. The badges, keybind actions, chat prefix and window names followed the name.
+- The commands are `/gbounty` and `/guildsbounty`. Both do the same thing; the old command is gone, so a macro that types it needs one of the two names.
+- The saved file from before is not read: shares rebuild from your bags at login, standing offers and reserves start empty, and a key you bound yourself has to be bound again.
+- Fixed items in the house storage chests and the furnishing vault going missing from the list while you were away from the house. Housing storage and the vault now read `Housing Storage (Kitchen)` and `Furnishing Vault (Lumber)`, or just the first two words when the chest has no nickname.
 
 ### 1.11.43
 - Resolved issue with incorrectly removing items from list, or setting incorrect offered date
@@ -55,12 +55,12 @@
 - House scans now show a short progress message and a summary when finished.
 - Added `/gbounty scan clear` (or `/gbounty scan reset`) to stop sharing scanned furnishings from your current house.
 
-### 1.11.12-1.11.17
+### 1.11.12–1.11.17
 - Improved add-on startup and house scanning reliability.
 - House scans explain when they cannot run, such as when you are outside a house or visiting someone else's.
 - Removed the old `/gbounty debug` command.
 
-### 1.11.9-1.11.11
+### 1.11.9–1.11.11
 - Always Share offers now track their storage location and available quantity more accurately.
 - Quantities update shortly after items are removed from storage.
 
@@ -76,7 +76,7 @@
 - Use `/gbounty expire` to check the setting and older-share count, or `/gbounty expire 0` to turn it off.
 - Moving or re-sharing an item keeps its original sharing date.
 
-### 1.11.3-1.11.5
+### 1.11.3–1.11.5
 - Storage chests now display their names instead of numbers. Renamed chests update the next time shares are refreshed.
 - Improved tracking of furniture locations across houses.
 
@@ -86,12 +86,12 @@
 ### 1.11.0
 - Added platform and megaserver tracking so shares are matched to the correct players.
 
-### 1.10.4-1.10.7
+### 1.10.4–1.10.7
 - Improved counting across stacks and storage locations.
 - Shares and reserves are tracked separately for each location, such as your bags and bank.
 - Bound items can no longer receive new share reserves. Existing reserves can still be cleared.
 
-### 1.10.2-1.10.3
+### 1.10.2–1.10.3
 - Improved sharing and reserve badges.
 - Right-clicking a row in the shared-items window cycles between Shared, Always Share, and Not Shared.
 
@@ -99,27 +99,6 @@
 - **Upgrade note:** This release resets sharing data from older versions.
 - Items with a reserve are listed even when they are not shared.
 
-### 1.9.0-1.10.0
+### 1.9.0–1.10.0
 - Made reserves easier to identify, including when nothing remains available to share.
 - Removed Google Sheets export.
-
-### 1.8.5-1.8.8
-- Added share reserves: keep a chosen quantity and offer the rest.
-- Prevented bound items from being added to sharing.
-- Improved item icons, Always Share badges, and list updates.
-
-### 1.8.0-1.8.4
-- Added Always Share offers for items not currently in your bags.
-- Improved sharing badges and fixed shared-items window issues.
-
-### 1.6.0-1.7.0
-- Added more precise storage locations.
-- Shared quantities refresh on login and when you access a bank.
-
-### 1.3.0-1.5.0
-- Added guild-based sharing, item icons, more item details, and browsing by item type.
-
-### 1.2.1-1.2.7
-- Improved setup instructions, list readability, and storage tracking.
-- Fixed problems displaying the shared-items window.
-- Saving now refreshes your shared items first.
