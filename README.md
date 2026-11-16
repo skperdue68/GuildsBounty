@@ -1,26 +1,31 @@
-# ItemShare
+# Guild's Bounty
 
-An ESO addon that marks tradeable items as shareable and writes them to `ItemShareSavedVars`, which the ItemShare website reads. This repository holds the addon only; the website is a separate project.
+An ESO addon that marks tradeable items as shareable and writes them to `GuildsBountySavedVars`, which the Guild's Bounty website reads. This repository holds the addon only; the website is a separate project.
 
 Requires LibCustomMenu
 
 The upload site that turns your saved file into a shareable list is a separate
-project: https://github.com/skperdue68/ItemShare-Web. Nothing in this repository
-needs it; the addon only writes ItemShareSavedVars.lua.
+project: https://github.com/skperdue68/GuildsBounty-Web. Nothing in this repository
+needs it; the addon only writes GuildsBountySavedVars.lua.
 
 The text of the addon's page on ESOUI, both the short description and the full BBCode description, is kept in [Documentation/ESOUI.md](Documentation/ESOUI.md).
 
-`tools/make_reserve_only_badge.py` redraws `media/itemshare_reserve_only.dds`, the badge for a reserve left on an item that is not shared at all.
+`tools/make_reserve_only_badge.py` redraws `media/guildsbounty_reserve_only.dds`, the badge for a reserve left on an item that is not shared at all.
 
-`tools/make_expired_badge.py` redraws `media/itemshare_expired.dds`, the stopwatch used by `/ishare expire`. It needs Python 3 and Pillow as well; run it from the repository root with `python3 tools/make_expired_badge.py`. The game never loads it.
+`tools/make_expired_badge.py` redraws `media/guildsbounty_expired.dds`, the stopwatch used by `/ishare expire`. It needs Python 3 and Pillow as well; run it from the repository root with `python3 tools/make_expired_badge.py`. The game never loads it.
 
-Download and extract to your ESO AddOns Directory
+Download and extract to your ESO AddOns Directory, so that the folder is `GuildsBounty` with
+`GuildsBounty.txt` inside it. Renamed from ItemShare: delete the old `ItemShare` folder, because
+two copies of the addon under different folder names both load. To keep the list you already
+have, rename `SavedVariables/ItemShareSavedVars.lua` to
+`SavedVariables/GuildsBountySavedVars.lua` before you log in; otherwise the shares rebuild from
+your bags at login and standing offers and reserves start empty.
 Ensure Add on is loaded at startup
 
 
 You can use commands 
 
-/ishare or /itemshare to control functionality
+/ishare or /guildsbounty to control functionality
 
 /ishare list - opens or closes the shared items window. Right-click a row there to cycle it: share it, make it a standing offer, or stop offering it.
 /ishare reset (or clear) - clears every share and every standing offer.
@@ -50,7 +55,7 @@ The window and the item menus cover the same ground without typing:
 
 You may add items to the shared list from Inventory, House Storage, Your Bank, or the Furnishings Vault, just right click the item and select "Add to Share" or "Remove from Share" as you desire.
 
-Two keybinds do the same two things without opening a menu. They are in the game's own keybind list - **ESC, Controls, Keybinds**, in the **ItemShare** category - and both act on the item you hovered last, so hover it first. **Toggle share** shares that item from the place you are looking at, and pressing it again takes the share back off. **Toggle always share** makes it a standing offer for that place, and pressing it again stops the offer. Turning one on turns the other off, which is what the menu already does: sharing a copy replaces a standing offer of the same item, and making an offer replaces the share.
+Two keybinds do the same two things without opening a menu. They are in the game's own keybind list - **ESC, Controls, Keybinds**, in the **Guild's Bounty** category - and both act on the item you hovered last, so hover it first. **Toggle share** shares that item from the place you are looking at, and pressing it again takes the share back off. **Toggle always share** makes it a standing offer for that place, and pressing it again stops the offer. Turning one on turns the other off, which is what the menu already does: sharing a copy replaces a standing offer of the same item, and making an offer replaces the share.
 
 Home storage and the furnishing vault are labelled with the nickname you gave them: a row reads `Housing Storage (Materials)` or `Furnishing Vault (Lumber)`, and the nickname is saved with the share, so it still reads that way while you are away from home. A chest you have not renamed reads `Housing Storage` with no brackets, and the vault never shows the zone you happened to stand in. Rename a chest and the next rebuild relabels its shares; two chests given the same name stay separate rows, because the chest itself is recorded as well.
 
@@ -81,23 +86,23 @@ An item shared from a place is locked while the share stands. From that place it
 If you want to keep some of a stack for yourself, give it a share reserve. The addon then offers only the quantity above that number, and the share list recalculates whenever your inventory changes:
 
 ```
-/itemshare reserve 12 soul gem     keep 12, so 20 held shares 8
-/itemshare reserve 12 soul gem     used 15 later, so 3 are shared
-/itemshare reserve 12 soul gem     used down to 10 later, so nothing is shared
-/itemshare reserves               list everything that has a reserve
-/itemshare noreserve soul gem     share the whole stack again
+/guildsbounty reserve 12 soul gem     keep 12, so 20 held shares 8
+/guildsbounty reserve 12 soul gem     used 15 later, so 3 are shared
+/guildsbounty reserve 12 soul gem     used down to 10 later, so nothing is shared
+/guildsbounty reserves               list everything that has a reserve
+/guildsbounty noreserve soul gem     share the whole stack again
 ```
 
 The same reserve can be set from the item's right-click menu: **Share Reserve** opens a number box with the item already chosen, refuses anything that is not a whole number of at least 1, and offers **Clear Reserve** once something is kept back.
 
 The menu only offers a reserve on an item that can actually be shared: a bound item has no reserve option, because a reserve on it would never count. An old reserve left on an item that has since become bound can still be cleared from the same menu.
 
-A reserve belongs to the item **in one place**. Set 50 on the soul gems in your bank and the stack in your bags keeps its own number, so the bank can hold some back while you offer everything on you. The right-click menu and the number box always speak for the bag you opened them on, and each row in `/ishare list` subtracts only its own place's reserve - the bank row and the bag row never share one number. `/itemshare reserve` sets the reserve for the place the item is shared from when that is a single place, and tells you to use the right-click menu when it is in several. A reserve set before places existed still applies everywhere the item is, until you set one in a bag.
+A reserve belongs to the item **in one place**. Set 50 on the soul gems in your bank and the stack in your bags keeps its own number, so the bank can hold some back while you offer everything on you. The right-click menu and the number box always speak for the bag you opened them on, and each row in `/ishare list` subtracts only its own place's reserve - the bank row and the bag row never share one number. `/guildsbounty reserve` sets the reserve for the place the item is shared from when that is a single place, and tells you to use the right-click menu when it is in several. A reserve set before places existed still applies everywhere the item is, until you set one in a bag.
 
 The name only has to be part of the item name, and it is refused if it matches more than one shared item. A share that is entirely inside its reserve stays marked at zero, so it comes back on its own when you acquire more - nothing has to be re-marked. Items with no reserve behave exactly as before. A reserve covers standing offers too: the list only shows one while you hold more than the reserve, and the offer comes back by itself once you do.
 
-The file also records which platform and which megaserver the account plays on; `/ishare server` shows what was captured. They are written once for the whole account rather than onto each share, because that is what they describe, and the ItemShare site matches on them: a file written on the North American megaserver is only ever offered to readers on the same platform and megaserver, because nothing trades between them. The megaserver's own name is kept as the game reports it for display, and the site matches on the short form - `na`, `eu` or `pts` - since the game's name is translated into the client's language.
+The file also records which platform and which megaserver the account plays on; `/ishare server` shows what was captured. They are written once for the whole account rather than onto each share, because that is what they describe, and the Guild's Bounty site matches on them: a file written on the North American megaserver is only ever offered to readers on the same platform and megaserver, because nothing trades between them. The megaserver's own name is kept as the game reports it for display, and the site matches on the short form - `na`, `eu` or `pts` - since the game's name is translated into the client's language.
 
 Once Everything is as you want it, save the file by doing /ishare save or typing /reloadui
 
-Then open the ItemShare site and upload the file there. The item list, the requests and everything that becomes of them happen on the site.
+Then open the Guild's Bounty site and upload the file there. The item list, the requests and everything that becomes of them happen on the site.

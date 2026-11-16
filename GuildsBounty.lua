@@ -1,34 +1,34 @@
-local ItemShare = {}
-ItemShare.name = "ItemShare"
--- Kept in step with ## Version in ItemShare.txt. Written into the saved
+local GuildsBounty = {}
+GuildsBounty.name = "GuildsBounty"
+-- Kept in step with ## Version in GuildsBounty.txt. Written into the saved
 -- variables so an uploaded file says which addon produced it, which is the only
 -- reliable way to answer "am I actually running the new version?".
-local ADDON_VERSION = "1.11.44"
+local ADDON_VERSION = "1.12.0"
 -- Bumped whenever the saved layout changes shape. A file written by a different
 -- number is not migrated: its tables are started over, so the file is rewritten in
 -- the current layout on the next save.
 local SAVED_VARS_VERSION = 5
 local CURRENT_DISPLAY_NAME = GetDisplayName() or "@Unknown"
 
-ItemShare.savedVars = nil
+GuildsBounty.savedVars = nil
 
-local SHARE_TEXTURE_PATH = "ItemShare/media/itemshare_share2.dds"
+local SHARE_TEXTURE_PATH = "GuildsBounty/media/guildsbounty_share2.dds"
 -- The standing-offer variant of the same glyph: the dome closes into a ring, so
 -- "always shared" is readable at 16 px without needing a colour legend.
-local ALWAYS_SHARE_TEXTURE_PATH = "ItemShare/media/itemshare_always.dds"
+local ALWAYS_SHARE_TEXTURE_PATH = "GuildsBounty/media/guildsbounty_always.dds"
 -- A reserve gets a badge of its own rather than a tint, and it keeps the glyph it
 -- sits on: the amber tag says "some of this is mine", the parcel underneath still
 -- says whether the offer is a plain share or a standing one.
-local RESERVE_TEXTURE_PATH = "ItemShare/media/itemshare_reserve.dds"
-local ALWAYS_RESERVE_TEXTURE_PATH = "ItemShare/media/itemshare_always_reserve.dds"
+local RESERVE_TEXTURE_PATH = "GuildsBounty/media/guildsbounty_reserve.dds"
+local ALWAYS_RESERVE_TEXTURE_PATH = "GuildsBounty/media/guildsbounty_always_reserve.dds"
 -- A reserve on an item that is not shared at all: the amber tag with no parcel under
 -- it. Without a badge of its own a reserve on an unshared item was invisible, so the
 -- only way to find out it needed clearing was to remember setting it.
-local RESERVE_ONLY_TEXTURE_PATH = "ItemShare/media/itemshare_reserve_only.dds"
+local RESERVE_ONLY_TEXTURE_PATH = "GuildsBounty/media/guildsbounty_reserve_only.dds"
 -- A share that has been on offer past the limit in the saved variables wears this
 -- instead of the share glyph: same corner, same size, so nothing on the slot moves and
 -- an item that has quietly become clutter reads as clutter at a glance.
-local EXPIRED_TEXTURE_PATH = "ItemShare/media/itemshare_expired.dds"
+local EXPIRED_TEXTURE_PATH = "GuildsBounty/media/guildsbounty_expired.dds"
 
 local defaults = {
     sharedItems = {},
@@ -121,7 +121,7 @@ end
 local SECONDS_PER_DAY = 86400
 
 local function GetExpireDays()
-    local days = tonumber(ItemShare.savedVars and ItemShare.savedVars.expireDays) or 0
+    local days = tonumber(GuildsBounty.savedVars and GuildsBounty.savedVars.expireDays) or 0
     if days <= 0 then
         return 0
     end
@@ -156,7 +156,7 @@ end
 
 -- What the command reports back: how many shares are past the limit, out of how many.
 local function CountSharesAboveExpireLimit()
-    local sharedItems = (ItemShare.savedVars and ItemShare.savedVars.sharedItems) or {}
+    local sharedItems = (GuildsBounty.savedVars and GuildsBounty.savedVars.sharedItems) or {}
     local expired, total = 0, 0
     for _, entry in pairs(sharedItems) do
         if type(entry) == "table" and not entry.reserveOnly then
@@ -200,7 +200,7 @@ local function DescribeReserveLine(itemLink, entry)
     )
 end
 
-ItemShare.ui = {
+GuildsBounty.ui = {
     listWindow = nil,
     listScroll = nil,
     listContent = nil,
@@ -209,11 +209,11 @@ ItemShare.ui = {
 }
 
 local function SaveListWindowState()
-    if not ItemShare.savedVars or not ItemShare.savedVars.listWindowState then
+    if not GuildsBounty.savedVars or not GuildsBounty.savedVars.listWindowState then
         return
     end
 
-    local window = ItemShare.ui and ItemShare.ui.listWindow
+    local window = GuildsBounty.ui and GuildsBounty.ui.listWindow
     if not window then
         return
     end
@@ -221,17 +221,17 @@ local function SaveListWindowState()
     local left = window.GetLeft and window:GetLeft() or nil
     local top = window.GetTop and window:GetTop() or nil
 
-    ItemShare.savedVars.listWindowState.left = left
-    ItemShare.savedVars.listWindowState.top = top
-    ItemShare.savedVars.listWindowState.isOpen = not window:IsHidden()
+    GuildsBounty.savedVars.listWindowState.left = left
+    GuildsBounty.savedVars.listWindowState.top = top
+    GuildsBounty.savedVars.listWindowState.isOpen = not window:IsHidden()
 end
 
 local function ApplySavedListWindowPosition(window)
-    if not ItemShare.savedVars or not ItemShare.savedVars.listWindowState then
+    if not GuildsBounty.savedVars or not GuildsBounty.savedVars.listWindowState then
         return
     end
 
-    local state = ItemShare.savedVars.listWindowState
+    local state = GuildsBounty.savedVars.listWindowState
     if state.left == nil or state.top == nil then
         return
     end
@@ -280,7 +280,7 @@ local function GetShareListEntries()
     local sharesByPlace = {}
     local shareOrder = {}
 
-    for itemKey, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for itemKey, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         local link = tostring(entry.itemLink or "")
         local locationKey = GetEntryLocationKey(entry)
         local groupKey = link ~= "" and (link .. "||" .. locationKey) or tostring(itemKey)
@@ -355,7 +355,7 @@ local function GetShareListEntries()
         end
     end
 
-    local alwaysShare = ItemShare.savedVars.alwaysShare
+    local alwaysShare = GuildsBounty.savedVars.alwaysShare
     if type(alwaysShare) == "table" then
         local waiting = {}
         for _, alwaysEntry in pairs(alwaysShare) do
@@ -438,7 +438,7 @@ local function GetShareListEntries()
         reserveRows[#reserveRows + 1] = { link = linkText, locationKey = placeKey }
     end
 
-    local locationReserves = ItemShare.savedVars.locationReserves
+    local locationReserves = GuildsBounty.savedVars.locationReserves
     if type(locationReserves) == "table" then
         for placeKey, amount in pairs(locationReserves) do
             local link, locationKey = string.match(tostring(placeKey or ""), "^(.*)||([^|]*)$")
@@ -449,7 +449,7 @@ local function GetShareListEntries()
         end
     end
 
-    local reserves = ItemShare.savedVars.reserves
+    local reserves = GuildsBounty.savedVars.reserves
     if type(reserves) == "table" then
         for link, amount in pairs(reserves) do
             local linkText = tostring(link or "")
@@ -551,16 +551,16 @@ end
 
 
 local function CreateShareListWindow()
-    if ItemShare.ui.listWindow then
-        return ItemShare.ui.listWindow
+    if GuildsBounty.ui.listWindow then
+        return GuildsBounty.ui.listWindow
     end
 
     local wm = WINDOW_MANAGER
-    local window = wm:CreateTopLevelWindow("ItemShareShareListWindow")
+    local window = wm:CreateTopLevelWindow("GuildsBountyShareListWindow")
     -- Registered before anything below can throw. A half-built window is still better
     -- than a second CreateTopLevelWindow on the next call, which errors with "already
     -- exists" and leaves the list unreachable until a reload.
-    ItemShare.ui.listWindow = window
+    GuildsBounty.ui.listWindow = window
     window:SetDimensions(720, 520)
     window:SetAnchor(CENTER, GuiRoot, CENTER, 0, 0)
     window:SetMovable(true)
@@ -657,7 +657,7 @@ local function CreateShareListWindow()
     -- "Unable to create control [Scroll]. This control already exists" - which is the
     -- intermittent error this replaces. Reusing also covers a previous attempt that
     -- built the scroll and then threw before the window was finished.
-    local scrollName = "ItemShareShareListScroll"
+    local scrollName = "GuildsBountyShareListScroll"
     local scroll = _G[scrollName]
 
     if scroll then
@@ -685,22 +685,22 @@ local function CreateShareListWindow()
         end
     end)
 
-    ItemShare.ui.listWindow = window
-    ItemShare.ui.listScroll = scroll
-    ItemShare.ui.listContent = content
-    ItemShare.ui.reloadButton = reloadButton
+    GuildsBounty.ui.listWindow = window
+    GuildsBounty.ui.listScroll = scroll
+    GuildsBounty.ui.listContent = content
+    GuildsBounty.ui.reloadButton = reloadButton
     return window
 end
 
 local function GetOrCreateShareListRow(index)
-    local existing = ItemShare.ui.rowControls[index]
+    local existing = GuildsBounty.ui.rowControls[index]
     if existing then
         return existing
     end
 
     local wm = WINDOW_MANAGER
-    local row = wm:CreateControl("ItemShareShareListRow" .. tostring(index), ItemShare.ui.listContent, CT_CONTROL)
-    row:SetAnchor(TOPLEFT, ItemShare.ui.listContent, TOPLEFT, 0, (index - 1) * 24)
+    local row = wm:CreateControl("GuildsBountyShareListRow" .. tostring(index), GuildsBounty.ui.listContent, CT_CONTROL)
+    row:SetAnchor(TOPLEFT, GuildsBounty.ui.listContent, TOPLEFT, 0, (index - 1) * 24)
     row:SetDimensions(660, 22)
     row:SetMouseEnabled(true)
 
@@ -793,7 +793,7 @@ local function GetOrCreateShareListRow(index)
     end
 
     local function updateRowSharedVisuals()
-        local isShared = row.entryKey and ItemShare.savedVars and ItemShare.savedVars.sharedItems and ItemShare.savedVars.sharedItems[row.entryKey] ~= nil
+        local isShared = row.entryKey and GuildsBounty.savedVars and GuildsBounty.savedVars.sharedItems and GuildsBounty.savedVars.sharedItems[row.entryKey] ~= nil
         local link = row.itemLink or (row.entryData and row.entryData.itemLink) or ""
         local isAlways = link ~= "" and IsItemLinkAlwaysShared(link, (row.entryData and row.entryData.locationKey) or row.locationKey)
 
@@ -819,16 +819,16 @@ local function GetOrCreateShareListRow(index)
     end
 
     local function handleRowMouseEnter()
-        if ItemShare.ui and ItemShare.ui.hoveredRow and ItemShare.ui.hoveredRow ~= row then
-            ItemShare.ui.hoveredRow.isMouseOver = false
-            if ItemShare.ui.hoveredRow.RefreshAppearance then
-                ItemShare.ui.hoveredRow:RefreshAppearance()
+        if GuildsBounty.ui and GuildsBounty.ui.hoveredRow and GuildsBounty.ui.hoveredRow ~= row then
+            GuildsBounty.ui.hoveredRow.isMouseOver = false
+            if GuildsBounty.ui.hoveredRow.RefreshAppearance then
+                GuildsBounty.ui.hoveredRow:RefreshAppearance()
             end
         end
 
         row.isMouseOver = true
-        if ItemShare.ui then
-            ItemShare.ui.hoveredRow = row
+        if GuildsBounty.ui then
+            GuildsBounty.ui.hoveredRow = row
         end
         RefreshRowAppearance()
     end
@@ -873,7 +873,7 @@ local function GetOrCreateShareListRow(index)
         if row.isShared then
             -- Sharing -> always sharing. The share goes in the same step, because an
             -- item is offered one way at a time.
-            local currentEntry = row.entryKey and ItemShare.savedVars.sharedItems[row.entryKey] or row.entryData
+            local currentEntry = row.entryKey and GuildsBounty.savedVars.sharedItems[row.entryKey] or row.entryData
             local alwaysEntry = SaveAlwaysShareEntry(currentEntry, GetEntryHeldCount(currentEntry))
 
             if not alwaysEntry then
@@ -1016,8 +1016,8 @@ local function GetOrCreateShareListRow(index)
 
     row:SetHandler("OnMouseExit", function()
         row.isMouseOver = false
-        if ItemShare.ui and ItemShare.ui.hoveredRow == row then
-            ItemShare.ui.hoveredRow = nil
+        if GuildsBounty.ui and GuildsBounty.ui.hoveredRow == row then
+            GuildsBounty.ui.hoveredRow = nil
         end
         RefreshRowAppearance()
     end)
@@ -1037,7 +1037,7 @@ local function GetOrCreateShareListRow(index)
     row.rowBackdrop = rowBackdrop
     row.UpdateSharedVisuals = updateRowSharedVisuals
     row.RefreshAppearance = RefreshRowAppearance
-    ItemShare.ui.rowControls[index] = row
+    GuildsBounty.ui.rowControls[index] = row
     return row
 end
 
@@ -1046,17 +1046,17 @@ RefreshShareListWindow = function()
 
     -- A window that exists but never finished being built has no scroll to put rows
     -- in; returning here keeps one bad load from turning into an error every refresh.
-    if not ItemShare.ui.listContent then
+    if not GuildsBounty.ui.listContent then
         return
     end
 
     local entries = GetShareListEntries()
     local rowHeight = 24
-    local contentWidth = math.max((ItemShare.ui.listScroll and ItemShare.ui.listScroll:GetWidth()) or 660, 660)
+    local contentWidth = math.max((GuildsBounty.ui.listScroll and GuildsBounty.ui.listScroll:GetWidth()) or 660, 660)
 
     for index, entry in ipairs(entries) do
         local row = GetOrCreateShareListRow(index)
-        row:SetAnchor(TOPLEFT, ItemShare.ui.listContent, TOPLEFT, 0, (index - 1) * rowHeight)
+        row:SetAnchor(TOPLEFT, GuildsBounty.ui.listContent, TOPLEFT, 0, (index - 1) * rowHeight)
         row:SetDimensions(contentWidth - 8, rowHeight)
         row:SetHidden(false)
         row.rowIndex = index
@@ -1103,21 +1103,21 @@ RefreshShareListWindow = function()
         end
     end
 
-    for index = #entries + 1, #ItemShare.ui.rowControls do
-        local row = ItemShare.ui.rowControls[index]
+    for index = #entries + 1, #GuildsBounty.ui.rowControls do
+        local row = GuildsBounty.ui.rowControls[index]
         if row then
             row:SetHidden(true)
         end
     end
 
     local contentHeight = math.max(#entries * rowHeight, 1)
-    ItemShare.ui.listContent:SetDimensions(contentWidth, contentHeight)
+    GuildsBounty.ui.listContent:SetDimensions(contentWidth, contentHeight)
     window:SetHidden(false)
     SaveListWindowState()
 end
 
 RefreshShareListWindowIfVisible = function()
-    local window = ItemShare.ui and ItemShare.ui.listWindow
+    local window = GuildsBounty.ui and GuildsBounty.ui.listWindow
     if window and not window:IsHidden() then
         RefreshShareListWindow()
     end
@@ -1127,13 +1127,13 @@ end
 -- command's answer reaches chat whether or not anything else is on, and a slash command
 -- that reports nothing is a bug rather than a setting.
 PrintMessage = function(message)
-    CHAT_ROUTER:AddSystemMessage("|cD8A24F[ItemShare]|r " .. tostring(message))
+    CHAT_ROUTER:AddSystemMessage("|cD8A24F[Guild's Bounty]|r " .. tostring(message))
 end
 
 local function ConfirmReloadUI()
     local dialogName = "ITEM_SHARE_CONFIRM_RELOAD_UI"
 
-    if not ItemShare.reloadDialogRegistered then
+    if not GuildsBounty.reloadDialogRegistered then
         ZO_Dialogs_RegisterCustomDialog(dialogName, {
             title = {
                 text = "Reload UI",
@@ -1154,7 +1154,7 @@ local function ConfirmReloadUI()
                 },
             },
         })
-        ItemShare.reloadDialogRegistered = true
+        GuildsBounty.reloadDialogRegistered = true
     end
 
     ZO_Dialogs_ShowDialog(dialogName)
@@ -1235,7 +1235,7 @@ end
 -- the file stops claiming the old one. Identical values change nothing in the saved
 -- file beyond the timestamp.
 CaptureServerEnvironment = function()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return "", ""
     end
 
@@ -1255,7 +1255,7 @@ CaptureServerEnvironment = function()
         end
     end
 
-    local saved = ItemShare.savedVars
+    local saved = GuildsBounty.savedVars
     saved.platform = GetPlatformToken(rawPlatform)
     saved.platformRaw = rawPlatform
     saved.world = GetWorldToken(worldName)
@@ -1266,7 +1266,7 @@ end
 
 local function PrintServerEnvironment()
     local platform, world = CaptureServerEnvironment()
-    local saved = ItemShare.savedVars or {}
+    local saved = GuildsBounty.savedVars or {}
 
     PrintMessage(string.format(
         "This file is recorded for %s on %s.",
@@ -1318,25 +1318,25 @@ end
 -- character snapshot, and a third time as an account-wide id->name map. IDs are the
 -- key because guild names are not unique and can be renamed; the ID is the stable one.
 GetSavedGuildRegistry = function()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
 
-    if type(ItemShare.savedVars.guilds) ~= "table" then
-        ItemShare.savedVars.guilds = {}
+    if type(GuildsBounty.savedVars.guilds) ~= "table" then
+        GuildsBounty.savedVars.guilds = {}
     end
-    return ItemShare.savedVars.guilds
+    return GuildsBounty.savedVars.guilds
 end
 
 GetCharacterGuildSnapshots = function()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
 
-    if type(ItemShare.savedVars.characterGuilds) ~= "table" then
-        ItemShare.savedVars.characterGuilds = {}
+    if type(GuildsBounty.savedVars.characterGuilds) ~= "table" then
+        GuildsBounty.savedVars.characterGuilds = {}
     end
-    return ItemShare.savedVars.characterGuilds
+    return GuildsBounty.savedVars.characterGuilds
 end
 
 GetGuildNameById = function(guildId)
@@ -1377,7 +1377,7 @@ local MAX_GUILD_SLOTS = 5
 -- Membership is per character because guilds are. A snapshot is now only the ids
 -- and the time they were read; the names stay in the registry above.
 local function RefreshGuildSnapshot()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
 
@@ -1419,7 +1419,7 @@ end
 -- account is in any more takes its name with it.
 PruneDepartedGuilds = function(quiet)
     local removedShares, removedReserves, removedNames = 0, 0, 0
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return removedShares, removedReserves, removedNames
     end
 
@@ -1445,7 +1445,7 @@ PruneDepartedGuilds = function(quiet)
         return currentIds[tostring(guildId)] ~= true
     end
 
-    local sharedItems = ItemShare.savedVars.sharedItems or {}
+    local sharedItems = GuildsBounty.savedVars.sharedItems or {}
     local departedShareKeys = {}
     for itemKey, entry in pairs(sharedItems) do
         if type(entry) == "table" and IsDeparted(entry.locationKey) then
@@ -1461,7 +1461,7 @@ PruneDepartedGuilds = function(quiet)
         PruneItemFirstDumpedAt()
     end
 
-    local locationReserves = ItemShare.savedVars.locationReserves or {}
+    local locationReserves = GuildsBounty.savedVars.locationReserves or {}
     local departedReserveKeys = {}
     for savedKey in pairs(locationReserves) do
         if IsDeparted(LocationKeyOfSavedKey(savedKey)) then
@@ -1540,7 +1540,7 @@ CanModifyGuildBankShare = function(bagId, slotIndex, guildId)
         return true
     end
 
-    if not (ItemShare.savedVars and ItemShare.savedVars.guildBankSharingEnabled) then
+    if not (GuildsBounty.savedVars and GuildsBounty.savedVars.guildBankSharingEnabled) then
         return false
     end
 
@@ -1869,7 +1869,7 @@ local function GetApparelInfo(bagId, slotIndex)
     return apparelSlot, equipType, apparelWeight, armorType
 end
 
-local function GetItemShareCount(bagId, slotIndex)
+local function GetGuildsBountyCount(bagId, slotIndex)
     local stackCount = GetSlotStackSize(bagId, slotIndex)
     if stackCount and stackCount > 0 then
         return stackCount
@@ -2177,23 +2177,23 @@ end
 -- same item in your bags keeps none; the item-wide table is the fallback an older
 -- file wrote, and it answers for any place that has no number of its own.
 local function GetShareReserveTable()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
-    if type(ItemShare.savedVars.reserves) ~= "table" then
-        ItemShare.savedVars.reserves = {}
+    if type(GuildsBounty.savedVars.reserves) ~= "table" then
+        GuildsBounty.savedVars.reserves = {}
     end
-    return ItemShare.savedVars.reserves
+    return GuildsBounty.savedVars.reserves
 end
 
 local function GetLocationReserveTable()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
-    if type(ItemShare.savedVars.locationReserves) ~= "table" then
-        ItemShare.savedVars.locationReserves = {}
+    if type(GuildsBounty.savedVars.locationReserves) ~= "table" then
+        GuildsBounty.savedVars.locationReserves = {}
     end
-    return ItemShare.savedVars.locationReserves
+    return GuildsBounty.savedVars.locationReserves
 end
 
 GetShareReserve = function(itemLink, locationKey)
@@ -2250,12 +2250,12 @@ ShareableCount = function(itemLink, heldCount, locationKey)
 end
 
 local function IsItemLinkSharedInLocation(itemLink, locationKey)
-    if not itemLink or not locationKey or not ItemShare.savedVars or not ItemShare.savedVars.sharedItems then
+    if not itemLink or not locationKey or not GuildsBounty.savedVars or not GuildsBounty.savedVars.sharedItems then
         return false
     end
 
     local entryKey = BuildSharedItemKey(itemLink, locationKey)
-    return ItemShare.savedVars.sharedItems[entryKey] ~= nil
+    return GuildsBounty.savedVars.sharedItems[entryKey] ~= nil
 end
 
 -- A share reserves the copy it was made from, and only that copy: something shared
@@ -2270,10 +2270,10 @@ end
 -- The second return says which of the two is holding the copy, because the message has
 -- to send you to the row that will actually release it.
 local function GetSharedEntryProtectingSlot(bagId, slotIndex)
-    if bagId == nil or slotIndex == nil or not ItemShare.savedVars then
+    if bagId == nil or slotIndex == nil or not GuildsBounty.savedVars then
         return nil, nil
     end
-    if ItemShare.savedVars.shareProtection == false then
+    if GuildsBounty.savedVars.shareProtection == false then
         return nil, nil
     end
 
@@ -2287,13 +2287,13 @@ local function GetSharedEntryProtectingSlot(bagId, slotIndex)
         return nil, nil
     end
 
-    local entry = ItemShare.savedVars.sharedItems and
-        ItemShare.savedVars.sharedItems[BuildSharedItemKey(itemLink, locationKey)]
+    local entry = GuildsBounty.savedVars.sharedItems and
+        GuildsBounty.savedVars.sharedItems[BuildSharedItemKey(itemLink, locationKey)]
     if entry ~= nil then
         return entry, "share"
     end
 
-    local alwaysShare = ItemShare.savedVars.alwaysShare
+    local alwaysShare = GuildsBounty.savedVars.alwaysShare
     if type(alwaysShare) == "table" and type(GetAlwaysShareKey) == "function" then
         local alwaysEntry = alwaysShare[GetAlwaysShareKey(itemLink, locationKey)]
         if alwaysEntry ~= nil then
@@ -2326,7 +2326,7 @@ local function NotifyShareProtected(entry, source)
     end
 
     PrintMessage(string.format(
-        "%s is %s from %s, so ItemShare is holding it: mailing, trading or storing it is all it will allow. %s",
+        "%s is %s from %s, so Guild's Bounty is holding it: mailing, trading or storing it is all it will allow. %s",
         tostring(entry and entry.itemName or "That item"),
         heldAs,
         tostring(entry and entry.sharedFrom or "that place"),
@@ -2494,7 +2494,7 @@ local function InstallShareProtection()
             -- runs on every hover. Nothing shared and no standing offers means no slot can
             -- be protected: one table lookup answers that, instead of resolving an item link
             -- and a bag for every row the pointer crosses on the way to the one you want.
-            local savedVars = ItemShare.savedVars
+            local savedVars = GuildsBounty.savedVars
             if not savedVars
                 or (next(savedVars.sharedItems or {}) == nil
                     and next(savedVars.alwaysShare or {}) == nil) then
@@ -2557,8 +2557,8 @@ local function FindSharedEntryKeyForBagSlot(bagId, slotIndex)
 
     local locationKey = select(1, GetBagLocationInfo(bagId))
     local entryKey = BuildSharedItemKey(itemLink, locationKey)
-    if ItemShare.savedVars and ItemShare.savedVars.sharedItems then
-        return ItemShare.savedVars.sharedItems[entryKey] and entryKey or nil
+    if GuildsBounty.savedVars and GuildsBounty.savedVars.sharedItems then
+        return GuildsBounty.savedVars.sharedItems[entryKey] and entryKey or nil
     end
     return nil
 end
@@ -2567,7 +2567,7 @@ end
 -- The offer is keyed by item link and place, so the same stack in another bag is a
 -- different thing and stays unmarked.
 IsItemLinkAlwaysShared = function(itemLink, locationKey)
-    local alwaysShare = ItemShare.savedVars and ItemShare.savedVars.alwaysShare
+    local alwaysShare = GuildsBounty.savedVars and GuildsBounty.savedVars.alwaysShare
     if type(alwaysShare) ~= "table" then
         return false
     end
@@ -2671,7 +2671,7 @@ end
 -- 36 px slot icon, so it is a little over half the icon now.
 local function AnchorShareMarker(marker, control, icon)
     icon = icon or FindItemIconControl(control)
-    control.ItemShareMarkerIcon = icon
+    control.GuildsBountyMarkerIcon = icon
 
     marker:ClearAnchors()
 
@@ -2705,16 +2705,16 @@ local function EnsureShareMarker(control)
         return nil
     end
 
-    if control.ItemShareMarker and control.ItemShareMarker.SetTexture then
+    if control.GuildsBountyMarker and control.GuildsBountyMarker.SetTexture then
         -- Rows are recycled and the icon a row borrows can change, so the anchor is
         -- re-applied - but only when it is a different icon. Re-anchoring is the
         -- expensive half of drawing a badge, and the common case is the same icon on a
         -- row being repainted, not a row that changed what it holds.
         local icon = FindItemIconControl(control)
-        if icon ~= control.ItemShareMarkerIcon then
-            AnchorShareMarker(control.ItemShareMarker, control, icon)
+        if icon ~= control.GuildsBountyMarkerIcon then
+            AnchorShareMarker(control.GuildsBountyMarker, control, icon)
         end
-        return control.ItemShareMarker
+        return control.GuildsBountyMarker
     end
 
     local marker = WINDOW_MANAGER:CreateControl(nil, control, CT_TEXTURE)
@@ -2731,15 +2731,15 @@ local function EnsureShareMarker(control)
         InitializeTooltip(InformationTooltip, self, BOTTOMLEFT, 0, -4)
 
         local lines = {}
-        if self.ItemShareExpired then
-            lines[#lines + 1] = string.format("|cFF8A70Shared for %d days|r", tonumber(self.ItemShareAgeDays) or 0)
+        if self.GuildsBountyExpired then
+            lines[#lines + 1] = string.format("|cFF8A70Shared for %d days|r", tonumber(self.GuildsBountyAgeDays) or 0)
             lines[#lines + 1] = string.format(
-                "Past the /itemshare expire limit of %d days.",
+                "Past the /guildsbounty expire limit of %d days.",
                 GetExpireDays()
             )
             lines[#lines + 1] = "It may be time to sell it."
         end
-        if self.ItemShareAlways then
+        if self.GuildsBountyAlways then
             lines[#lines + 1] = "|cFFD266Always shared|r"
             lines[#lines + 1] = "You offer this whenever you have one."
         else
@@ -2747,14 +2747,14 @@ local function EnsureShareMarker(control)
             lines[#lines + 1] = "This item is available to others."
         end
 
-        local reserve = tonumber(self.ItemShareReserve) or 0
+        local reserve = tonumber(self.GuildsBountyReserve) or 0
         if reserve > 0 then
-            local held = tonumber(self.ItemShareHeld) or 0
+            local held = tonumber(self.GuildsBountyHeld) or 0
             if held > 0 then
                 lines[#lines + 1] = string.format(
                     "|cD8A24FKeeping %d back|r - offering %d of %d held.",
                     reserve,
-                    tonumber(self.ItemShareOffered) or 0,
+                    tonumber(self.GuildsBountyOffered) or 0,
                     held
                 )
             else
@@ -2771,7 +2771,7 @@ local function EnsureShareMarker(control)
 
     AnchorShareMarker(marker, control)
 
-    control.ItemShareMarker = marker
+    control.GuildsBountyMarker = marker
     return marker
 end
 
@@ -2810,8 +2810,8 @@ local function EnsureReserveMarker(control)
         return nil
     end
 
-    if control.ItemShareReserveMarker then
-        return control.ItemShareReserveMarker
+    if control.GuildsBountyReserveMarker then
+        return control.GuildsBountyReserveMarker
     end
 
     local marker = WINDOW_MANAGER:CreateControl(nil, control, CT_TEXTURE)
@@ -2825,21 +2825,21 @@ local function EnsureReserveMarker(control)
         InitializeTooltip(InformationTooltip, self, BOTTOMLEFT, 0, -4)
 
         local lines = { "|cD8A24FShare reserve|r" }
-        local reserve = tonumber(self.ItemShareReserve) or 0
-        local held = tonumber(self.ItemShareHeld) or 0
+        local reserve = tonumber(self.GuildsBountyReserve) or 0
+        local held = tonumber(self.GuildsBountyHeld) or 0
 
         if reserve > 0 and held > 0 then
             lines[#lines + 1] = string.format(
                 "|cD8A24FKeeping %d back|r - offering %d of %d held.",
                 reserve,
-                tonumber(self.ItemShareOffered) or 0,
+                tonumber(self.GuildsBountyOffered) or 0,
                 held
             )
         elseif reserve > 0 then
             lines[#lines + 1] = string.format("|cD8A24FKeeping %d back|r.", reserve)
         end
 
-        if self.ItemShareUnshared then
+        if self.GuildsBountyUnshared then
             lines[#lines + 1] = "Nothing is shared from this item, but some is kept back."
             lines[#lines + 1] = "Right-click it - Share Reserve - to change or clear it."
         end
@@ -2852,7 +2852,7 @@ local function EnsureReserveMarker(control)
     end)
 
     AnchorReserveMarker(marker, control)
-    control.ItemShareReserveMarker = marker
+    control.GuildsBountyReserveMarker = marker
     return marker
 end
 
@@ -2861,7 +2861,7 @@ end
 -- to draw" with one table lookup keeps that opening cost off players who have nothing on their
 -- list, and off everyone before the first share of the session.
 local function HasAnyMarkerState()
-    local savedVars = ItemShare.savedVars
+    local savedVars = GuildsBounty.savedVars
     if not savedVars then
         return false
     end
@@ -2878,22 +2878,22 @@ local function UpdateSharedRowMarker(control, slotData)
     end
 
     if not HasAnyMarkerState() then
-        if control.ItemShareMarker and control.ItemShareMarker.SetHidden then
-            control.ItemShareMarker:SetHidden(true)
+        if control.GuildsBountyMarker and control.GuildsBountyMarker.SetHidden then
+            control.GuildsBountyMarker:SetHidden(true)
         end
-        if control.ItemShareReserveMarker and control.ItemShareReserveMarker.SetHidden then
-            control.ItemShareReserveMarker:SetHidden(true)
+        if control.GuildsBountyReserveMarker and control.GuildsBountyReserveMarker.SetHidden then
+            control.GuildsBountyReserveMarker:SetHidden(true)
         end
         return
     end
 
     local bagId, slotIndex = GetBagAndSlotFromSlotData(control, slotData)
     if bagId == nil or slotIndex == nil then
-        if control.ItemShareMarker and control.ItemShareMarker.SetHidden then
-            control.ItemShareMarker:SetHidden(true)
+        if control.GuildsBountyMarker and control.GuildsBountyMarker.SetHidden then
+            control.GuildsBountyMarker:SetHidden(true)
         end
-        if control.ItemShareReserveMarker and control.ItemShareReserveMarker.SetHidden then
-            control.ItemShareReserveMarker:SetHidden(true)
+        if control.GuildsBountyReserveMarker and control.GuildsBountyReserveMarker.SetHidden then
+            control.GuildsBountyReserveMarker:SetHidden(true)
         end
         return
     end
@@ -2901,9 +2901,9 @@ local function UpdateSharedRowMarker(control, slotData)
     local itemLink = GetNormalizedItemLink(bagId, slotIndex)
     local locationKey = select(1, GetBagLocationInfo(bagId))
     local sharedEntry = itemLink and locationKey and IsItemLinkSharedInLocation(itemLink, locationKey)
-            and ItemShare.savedVars
-            and ItemShare.savedVars.sharedItems
-            and ItemShare.savedVars.sharedItems[BuildSharedItemKey(itemLink, locationKey)]
+            and GuildsBounty.savedVars
+            and GuildsBounty.savedVars.sharedItems
+            and GuildsBounty.savedVars.sharedItems[BuildSharedItemKey(itemLink, locationKey)]
         or nil
     -- The entry existing is what "shared" means. How much is on offer belongs in the
     -- tooltip, not in whether the badge is drawn at all.
@@ -2925,37 +2925,37 @@ local function UpdateSharedRowMarker(control, slotData)
     -- table lookups; moving it is a dozen client calls - anchoring, draw layer, draw tier,
     -- texture. So the work is dropped early when nothing changed, and only a row whose
     -- answer changed is redrawn.
-    local unchanged = control.ItemShareMarkerLink == itemLink
-        and control.ItemShareMarkerLocation == locationKey
-        and control.ItemShareMarkerShared == isShared
-        and control.ItemShareMarkerAlways == isAlways
-        and control.ItemShareMarkerReserve == reserve
-        and control.ItemShareMarkerExpired == isExpired
-        and control.ItemShareMarkerAgeDays == ageDays
-        and control.ItemShareMarkerHeld == held
-        and control.ItemShareMarkerOffered == offered
+    local unchanged = control.GuildsBountyMarkerLink == itemLink
+        and control.GuildsBountyMarkerLocation == locationKey
+        and control.GuildsBountyMarkerShared == isShared
+        and control.GuildsBountyMarkerAlways == isAlways
+        and control.GuildsBountyMarkerReserve == reserve
+        and control.GuildsBountyMarkerExpired == isExpired
+        and control.GuildsBountyMarkerAgeDays == ageDays
+        and control.GuildsBountyMarkerHeld == held
+        and control.GuildsBountyMarkerOffered == offered
 
     if unchanged then
         return
     end
 
-    control.ItemShareMarkerLink = itemLink
-    control.ItemShareMarkerLocation = locationKey
-    control.ItemShareMarkerShared = isShared
-    control.ItemShareMarkerAlways = isAlways
-    control.ItemShareMarkerReserve = reserve
-    control.ItemShareMarkerExpired = isExpired
-    control.ItemShareMarkerAgeDays = ageDays
-    control.ItemShareMarkerHeld = held
-    control.ItemShareMarkerOffered = offered
+    control.GuildsBountyMarkerLink = itemLink
+    control.GuildsBountyMarkerLocation = locationKey
+    control.GuildsBountyMarkerShared = isShared
+    control.GuildsBountyMarkerAlways = isAlways
+    control.GuildsBountyMarkerReserve = reserve
+    control.GuildsBountyMarkerExpired = isExpired
+    control.GuildsBountyMarkerAgeDays = ageDays
+    control.GuildsBountyMarkerHeld = held
+    control.GuildsBountyMarkerOffered = offered
 
     local marker = EnsureShareMarker(control)
     if not marker then
         return
     end
 
-    marker.ItemShareExpired = isExpired and true or false
-    marker.ItemShareAgeDays = ageDays
+    marker.GuildsBountyExpired = isExpired and true or false
+    marker.GuildsBountyAgeDays = ageDays
 
     if isShared or isAlways then
         -- The plain glyph, saying only what the item offers. A reserve is a separate fact
@@ -2965,10 +2965,10 @@ local function UpdateSharedRowMarker(control, slotData)
             isExpired and EXPIRED_TEXTURE_PATH
                 or (isAlways and ALWAYS_SHARE_TEXTURE_PATH or SHARE_TEXTURE_PATH)
         )
-        marker.ItemShareAlways = isAlways and true or false
-        marker.ItemShareReserve = reserve
-        marker.ItemShareHeld = held
-        marker.ItemShareOffered = offered
+        marker.GuildsBountyAlways = isAlways and true or false
+        marker.GuildsBountyReserve = reserve
+        marker.GuildsBountyHeld = held
+        marker.GuildsBountyOffered = offered
     end
 
     marker:SetHidden(not (isShared or isAlways))
@@ -2977,10 +2977,10 @@ local function UpdateSharedRowMarker(control, slotData)
     -- an item that is only reserved shows the tag on its own.
     local reserveMarker = EnsureReserveMarker(control)
     if reserveMarker then
-        reserveMarker.ItemShareReserve = reserve
-        reserveMarker.ItemShareUnshared = not (isShared or isAlways)
-        reserveMarker.ItemShareHeld = held
-        reserveMarker.ItemShareOffered = offered
+        reserveMarker.GuildsBountyReserve = reserve
+        reserveMarker.GuildsBountyUnshared = not (isShared or isAlways)
+        reserveMarker.GuildsBountyHeld = held
+        reserveMarker.GuildsBountyOffered = offered
         reserveMarker:SetHidden(reserve <= 0)
     end
 end
@@ -3021,7 +3021,7 @@ local function HookListViewDataTypes(listView)
 
     local hooked = false
     for _, dataType in pairs(dataTypes) do
-        if dataType and not dataType.ItemShareWrapped then
+        if dataType and not dataType.GuildsBountyWrapped then
             local wrapped = false
 
             if type(dataType.callbackFunction) == "function" then
@@ -3048,7 +3048,7 @@ local function HookListViewDataTypes(listView)
             end
 
             if wrapped then
-                dataType.ItemShareWrapped = true
+                dataType.GuildsBountyWrapped = true
                 hooked = true
             end
         end
@@ -3113,7 +3113,7 @@ local function GetLocationShareCount(bagId, itemLink)
 
     for slotIndex = 0, bagSize - 1 do
         if GetNormalizedItemLink(bagId, slotIndex) == link then
-            total = total + GetItemShareCount(bagId, slotIndex)
+            total = total + GetGuildsBountyCount(bagId, slotIndex)
         end
     end
 
@@ -3137,9 +3137,9 @@ local function AddItemToShareFromBagSlot(bagId, slotIndex)
     -- this share instead of overwriting what the first one recorded.
     local stackCount = GetLocationShareCount(bagId, itemData.itemLink)
     if stackCount <= 0 then
-        stackCount = GetItemShareCount(bagId, slotIndex)
+        stackCount = GetGuildsBountyCount(bagId, slotIndex)
     end
-    local existing = ItemShare.savedVars.sharedItems[itemData.itemKey]
+    local existing = GuildsBounty.savedVars.sharedItems[itemData.itemKey]
     local savedEntry = SaveSharedEntry(itemData, stackCount, nil, true)
 
     if not savedEntry then
@@ -3194,14 +3194,14 @@ end
 -- Written when the item is first shared, never touched again until the item stops being
 -- offered - no share and no standing offer - at which point it is dropped.
 local function GetItemFirstDumpedTable()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
 
-    local byLink = ItemShare.savedVars.itemFirstDumped
+    local byLink = GuildsBounty.savedVars.itemFirstDumped
     if type(byLink) ~= "table" then
         byLink = {}
-        ItemShare.savedVars.itemFirstDumped = byLink
+        GuildsBounty.savedVars.itemFirstDumped = byLink
     end
 
     return byLink
@@ -3241,21 +3241,21 @@ end
 -- with no share in any place and no standing offer loses one, and it starts a new date if
 -- it is offered again later.
 PruneItemFirstDumpedAt = function()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return
     end
 
     local byLink = GetItemFirstDumpedTable()
     local live = {}
 
-    for _, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         local link = tostring(entry and entry.itemLink or "")
         if link ~= "" then
             live[link] = true
         end
     end
 
-    for _, entry in pairs(ItemShare.savedVars.alwaysShare or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.alwaysShare or {}) do
         local link = tostring(entry and entry.itemLink or "")
         if link ~= "" then
             live[link] = true
@@ -3274,13 +3274,13 @@ end
 -- writing it back onto every row, means the first read after an update agrees with every
 -- read after it.
 local function SeedItemFirstDumpedAt()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return
     end
 
     local byLink = GetItemFirstDumpedTable()
 
-    for _, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         local link = tostring(entry and entry.itemLink or "")
         local stamp = tonumber(entry and entry.firstDumpedAt) or 0
         if link ~= "" and stamp > 0 then
@@ -3293,7 +3293,7 @@ local function SeedItemFirstDumpedAt()
 
     -- The row copy is not kept: the index is the only place the date lives now, so an old
     -- row's field is cleared as it is read rather than carried forward.
-    for _, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         entry.firstDumpedAt = nil
     end
 end
@@ -3323,12 +3323,12 @@ local DROPPED_ENTRY_FIELDS = {
 -- that are still wanted - the name, the link, the icon, the place, the count - are not
 -- named here.
 local function ScrubSavedEntryFields()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return 0
     end
 
     local dropped = 0
-    local tables = { ItemShare.savedVars.sharedItems, ItemShare.savedVars.alwaysShare }
+    local tables = { GuildsBounty.savedVars.sharedItems, GuildsBounty.savedVars.alwaysShare }
 
     for _, table in ipairs(tables) do
         if type(table) == "table" then
@@ -3354,7 +3354,7 @@ RemoveItemFromShareByKey = function(itemKey, entry, refreshListWindow)
     end
 
     local itemName = entry and entry.itemName or itemKey
-    ItemShare.savedVars.sharedItems[itemKey] = nil
+    GuildsBounty.savedVars.sharedItems[itemKey] = nil
     PruneItemFirstDumpedAt()
     PrintMessage(string.format("Removed %s from shared list.", tostring(itemName)))
     TryRefreshInventoryVisuals()
@@ -3376,7 +3376,7 @@ SaveSharedEntry = function(itemData, count, firstDumpedAt, refreshListWindow)
     end
 
     local now = GetTimeStamp()
-    local existing = ItemShare.savedVars.sharedItems[itemData.itemKey]
+    local existing = GuildsBounty.savedVars.sharedItems[itemData.itemKey]
     local entry = existing or {}
 
     entry.characterName = GetCurrentCharacterName()
@@ -3407,7 +3407,7 @@ SaveSharedEntry = function(itemData, count, firstDumpedAt, refreshListWindow)
     -- into the file twice for the website to read back.
     RememberItemFirstDumpedAt(entry.itemLink, firstDumpedAt or now)
 
-    ItemShare.savedVars.sharedItems[itemData.itemKey] = entry
+    GuildsBounty.savedVars.sharedItems[itemData.itemKey] = entry
     TryRefreshInventoryVisuals()
     if refreshListWindow ~= false then
         RefreshShareListWindowIfVisible()
@@ -3706,7 +3706,7 @@ local function ScanPlacedFurnishings()
         end
     end
 
-    local sharedItems = ItemShare.savedVars.sharedItems
+    local sharedItems = GuildsBounty.savedVars.sharedItems
     local removedCount = 0
 
     for itemKey, entry in pairs(sharedItems) do
@@ -3779,7 +3779,7 @@ local function ClearPlacedFurnishingsForCurrentHouse()
     end
 
     local placedKey, placedLabel = GetPlacedLocationInfo(house.houseName)
-    local sharedItems = ItemShare.savedVars.sharedItems
+    local sharedItems = GuildsBounty.savedVars.sharedItems
     local cleared = 0
 
     for itemKey, entry in pairs(sharedItems) do
@@ -3815,7 +3815,7 @@ end
 -- placed. That idea is gone, so those rows go with it, once, with a message saying
 -- how to file them again the new way.
 local function PruneLegacyPlacedFurnitureShares()
-    local sharedItems = ItemShare.savedVars and ItemShare.savedVars.sharedItems
+    local sharedItems = GuildsBounty.savedVars and GuildsBounty.savedVars.sharedItems
     if type(sharedItems) ~= "table" then
         return 0
     end
@@ -3844,13 +3844,13 @@ end
 -- I ever have this again, offer it". It lives in its own table so the rebuild
 -- pass, which prunes anything missing from a readable bag, can never delete it.
 GetAlwaysShareTable = function()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return {}
     end
-    if type(ItemShare.savedVars.alwaysShare) ~= "table" then
-        ItemShare.savedVars.alwaysShare = {}
+    if type(GuildsBounty.savedVars.alwaysShare) ~= "table" then
+        GuildsBounty.savedVars.alwaysShare = {}
     end
-    return ItemShare.savedVars.alwaysShare
+    return GuildsBounty.savedVars.alwaysShare
 end
 
 -- Keyed by item link and place: a standing offer belongs to the place it was marked
@@ -3957,14 +3957,14 @@ RemoveSharesForItemLink = function(itemLink)
     end
 
     local keys = {}
-    for itemKey, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for itemKey, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         if type(entry) == "table" and tostring(entry.itemLink or "") == link then
             keys[#keys + 1] = itemKey
         end
     end
 
     for _, itemKey in ipairs(keys) do
-        ItemShare.savedVars.sharedItems[itemKey] = nil
+        GuildsBounty.savedVars.sharedItems[itemKey] = nil
     end
 
     if #keys > 0 then
@@ -4027,7 +4027,7 @@ local function AddAlwaysShareFromBagSlot(bagId, slotIndex)
     -- copy is an offer of one and handing it over later leaves the row at 0.
     local markedCount = GetLocationShareCount(bagId, itemData.itemLink)
     if markedCount <= 0 then
-        markedCount = GetItemShareCount(bagId, slotIndex)
+        markedCount = GetGuildsBountyCount(bagId, slotIndex)
     end
     SaveAlwaysShareEntry(itemData, markedCount)
 
@@ -4086,13 +4086,13 @@ local function PrintAlwaysShareItems()
             place ~= "" and string.format(" - %s", place) or ""
         ))
     end
-    PrintMessage("Remove one with /itemshare noalways <part of the name>.")
+    PrintMessage("Remove one with /guildsbounty noalways <part of the name>.")
 end
 
 local function RemoveAlwaysShareByName(searchText)
     local needle = zo_strlower(zo_strtrim(tostring(searchText or "")))
     if needle == "" then
-        PrintMessage("Usage: /itemshare noalways <part of the item name>")
+        PrintMessage("Usage: /guildsbounty noalways <part of the item name>")
         return
     end
 
@@ -4158,7 +4158,7 @@ local function RemoveItemFromShareFromBagSlot(bagId, slotIndex)
         return
     end
 
-    local existing = ItemShare.savedVars.sharedItems[itemData.itemKey]
+    local existing = GuildsBounty.savedVars.sharedItems[itemData.itemKey]
     if existing then
         RemoveItemFromShareByKey(itemData.itemKey, existing, true)
     else
@@ -4253,10 +4253,10 @@ end
 
 -- ---------------------------------------------------------------- keybinds --
 -- Both menu entries are also keybinds, listed in the game's own keybind list: ESC, Controls,
--- Keybinds, category ItemShare. A keybind has no row to click, so each one acts on the item
+-- Keybinds, category GuildsBounty. A keybind has no row to click, so each one acts on the item
 -- last hovered - hovering is the only way the addon is told which item you mean.
-ZO_CreateStringId("SI_BINDING_NAME_ITEMSHARE_TOGGLE_SHARE", "Toggle share on the hovered item")
-ZO_CreateStringId("SI_BINDING_NAME_ITEMSHARE_TOGGLE_ALWAYS_SHARE", "Toggle always share on the hovered item")
+ZO_CreateStringId("SI_BINDING_NAME_GUILDSBOUNTY_TOGGLE_SHARE", "Toggle share on the hovered item")
+ZO_CreateStringId("SI_BINDING_NAME_GUILDSBOUNTY_TOGGLE_ALWAYS_SHARE", "Toggle always share on the hovered item")
 
 local hoveredShareBagId, hoveredShareSlotIndex = nil, nil
 
@@ -4303,7 +4303,7 @@ end
 -- Pressing the key on an item that is not shared shares it; pressing it again takes the share
 -- back off. Sharing a copy replaces a standing offer of the same item, which is what the menu
 -- does as well, so the two keybinds cannot leave an item in both states.
-function ItemShare_ToggleShare()
+function GuildsBounty_ToggleShare()
     local bagId, slotIndex = GetHoveredShareSlot()
     if not bagId then
         return
@@ -4318,7 +4318,7 @@ end
 
 -- The same for the standing offer: on, off, on, off. Marking one clears any share of the item,
 -- and stopping one leaves the copy alone, so this goes through the same entries the menu uses.
-function ItemShare_ToggleAlwaysShare()
+function GuildsBounty_ToggleAlwaysShare()
     local bagId, slotIndex = GetHoveredShareSlot()
     if not bagId then
         return
@@ -4357,7 +4357,7 @@ local function RegisterContextMenus()
 end
 
 local function ResetSharedItems()
-    ItemShare.savedVars.sharedItems = {}
+    GuildsBounty.savedVars.sharedItems = {}
     PrintMessage("Saved variables reset. No shared items remain.")
     TryRefreshInventoryVisuals()
     RefreshShareListWindowIfVisible()
@@ -4401,7 +4401,7 @@ local function GetTrackedBagIds()
     end
     -- The guild bank is only worth a walk when guild bank sharing is on: nothing can be
     -- filed there unless it is, and it is one more bag to read on every pass otherwise.
-    if BAG_GUILDBANK and ItemShare.savedVars and ItemShare.savedVars.guildBankSharingEnabled then
+    if BAG_GUILDBANK and GuildsBounty.savedVars and GuildsBounty.savedVars.guildBankSharingEnabled then
         table.insert(bagIds, BAG_GUILDBANK)
     end
 
@@ -4448,7 +4448,7 @@ BuildActualInventoryIndex = function()
                 if isEligible then
                     local itemData = GetItemDataFromBagSlot(bagId, slotIndex)
                     if itemData and itemData.itemLink then
-                        local stackCount = GetItemShareCount(bagId, slotIndex)
+                        local stackCount = GetGuildsBountyCount(bagId, slotIndex)
                         local entryKey = BuildSharedItemKey(itemData.itemLink, locationKey)
 
                         countsByEntryKey[entryKey] = {
@@ -4556,7 +4556,7 @@ local function ScanOneSlot(index, unit, slotIndex)
         return
     end
 
-    local stackCount = GetItemShareCount(bagId, slotIndex)
+    local stackCount = GetGuildsBountyCount(bagId, slotIndex)
     local entryKey = BuildSharedItemKey(itemData.itemLink, unit.locationKey)
     local existing = index.countsByEntryKey[entryKey]
 
@@ -4760,7 +4760,7 @@ end
 -- to keep it true. A place that cannot be read this session keeps the number it had,
 -- because a shut bank proves nothing about what is inside it - the same rule shares use.
 RefreshAlwaysShareHeldCounts = function(inventoryIndex)
-    local alwaysShare = ItemShare.savedVars and ItemShare.savedVars.alwaysShare
+    local alwaysShare = GuildsBounty.savedVars and GuildsBounty.savedVars.alwaysShare
     if type(alwaysShare) ~= "table" or not inventoryIndex then
         return 0
     end
@@ -4855,7 +4855,7 @@ local reconcileJob = nil
 -- whole of the decision - remove, update, or leave alone - so a sliced pass and an
 -- immediate one cannot disagree about it.
 local function ReconcileOneEntry(job, itemKey, entry)
-    local sharedItems = ItemShare.savedVars.sharedItems
+    local sharedItems = GuildsBounty.savedVars.sharedItems
     local inventoryIndex = job.index
     local quiet = job.quiet
     local counters = job.counters
@@ -4971,7 +4971,7 @@ local function BuildReconcileJob(mode, quiet, prebuiltIndex)
 
     -- The key list is taken once: a pass renames or removes entries as it goes, and
     -- walking the table while doing that would visit some of them twice.
-    for itemKey, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for itemKey, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         job.keys[#job.keys + 1] = { key = itemKey, entry = entry }
     end
 
@@ -5031,7 +5031,7 @@ end
 -- The sliced pass, for anything that began with a bag read. The read hands its index over
 -- and returns; the shares catch up over the next few frames instead of in one.
 local function StartSlicedReconcile(mode, quiet, prebuiltIndex)
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return
     end
 
@@ -5052,7 +5052,7 @@ end
 
 -- The same pass with no pauses, for the commands that answer on the spot.
 SyncSharedItemsWithInventory = function(quiet, prebuiltIndex)
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return
     end
 
@@ -5062,7 +5062,7 @@ SyncSharedItemsWithInventory = function(quiet, prebuiltIndex)
 end
 
 RebuildSharedItemsWithInventory = function(quiet, prebuiltIndex)
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return
     end
 
@@ -5079,11 +5079,11 @@ local lastAutoReconcileAt = nil
 local AUTO_RECONCILE_MIN_INTERVAL_SECONDS = 10
 
 local function ScheduleAutoReconcile(reason)
-    if not ItemShare.savedVars or not zo_callLater then
+    if not GuildsBounty.savedVars or not zo_callLater then
         return
     end
 
-    if ItemShare.savedVars.autoScan == false then
+    if GuildsBounty.savedVars.autoScan == false then
         return
     end
 
@@ -5110,7 +5110,7 @@ local function ScheduleAutoReconcile(reason)
     autoReconcilePending = true
     zo_callLater(function()
         autoReconcilePending = false
-        if not ItemShare.savedVars then
+        if not GuildsBounty.savedVars then
             return
         end
 
@@ -5163,7 +5163,7 @@ local readableBagsSeen = nil
 -- while the close happens once, with the contents settled. A bag that has just stopped being
 -- readable is what asks for the pass, and the bag it held is still readable at that moment.
 local function NoticeReadableBags()
-    if not ItemShare.savedVars then
+    if not GuildsBounty.savedVars then
         return
     end
 
@@ -5190,7 +5190,7 @@ end
 -- through, so this one runs to the end in a single go. A short beat at logout is worth a
 -- file that carries the newest counts.
 local function ScanBeforeLogout()
-    if not ItemShare.savedVars or ItemShare.savedVars.autoScan == false then
+    if not GuildsBounty.savedVars or GuildsBounty.savedVars.autoScan == false then
         return
     end
 
@@ -5205,7 +5205,7 @@ local function SharedEntriesMatching(searchText)
         return matches
     end
 
-    for _, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         if string.find(string.lower(tostring(entry.itemName or "")), needle, 1, true) then
             matches[#matches + 1] = entry
         end
@@ -5303,7 +5303,7 @@ ApplyShareReserve = function(itemLink, amount, locationKey)
     SetShareReserve(link, keep, placeKey)
 
     local updated = nil
-    for _, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         if tostring(entry.itemLink or "") == link
             and (placeKey == "" or tostring(entry.locationKey or "") == placeKey) then
             entry.heldCount = GetEntryHeldCount(entry)
@@ -5311,7 +5311,7 @@ ApplyShareReserve = function(itemLink, amount, locationKey)
         end
     end
 
-    local alwaysShare = ItemShare.savedVars.alwaysShare
+    local alwaysShare = GuildsBounty.savedVars.alwaysShare
     if type(alwaysShare) == "table" then
         for _, entry in pairs(alwaysShare) do
             if type(entry) == "table" and tostring(entry.itemLink or "") == link
@@ -5345,7 +5345,7 @@ local function BuildReserveDialog()
     end
 
     local wm = WINDOW_MANAGER
-    local window = wm:CreateTopLevelWindow("ItemShareReserveWindow")
+    local window = wm:CreateTopLevelWindow("GuildsBountyReserveWindow")
     -- Remembered before anything below can throw, so a half-built window is never
     -- created a second time under the same name.
     reserveDialog = { window = window }
@@ -5399,7 +5399,7 @@ local function BuildReserveDialog()
     local editBox = nil
     if wm.CreateControlFromVirtual then
         local built, control = pcall(function()
-            return wm:CreateControlFromVirtual("ItemShareReserveEdit", window, "ZO_DefaultEditForBackdrop")
+            return wm:CreateControlFromVirtual("GuildsBountyReserveEdit", window, "ZO_DefaultEditForBackdrop")
         end)
         if built then
             editBox = control
@@ -5536,7 +5536,7 @@ OpenShareReserveDialog = function(bagId, slotIndex)
 
     if not dialog then
         PrintMessage(string.format(
-            "The reserve box is unavailable in this client. Use /itemshare reserve <amount> %s.",
+            "The reserve box is unavailable in this client. Use /guildsbounty reserve <amount> %s.",
             tostring(itemName)
         ))
         return
@@ -5580,7 +5580,7 @@ local function PrintShareReserves()
         end
     end
 
-    for _, entry in pairs(ItemShare.savedVars.sharedItems or {}) do
+    for _, entry in pairs(GuildsBounty.savedVars.sharedItems or {}) do
         AddEntryRow(entry)
     end
     for _, entry in pairs(GetAlwaysShareTable()) do
@@ -5603,7 +5603,7 @@ local function PrintShareReserves()
         return tostring(itemData and itemData.itemName or ""), tostring(place and place.sharedFrom or "")
     end
 
-    local locationReserves = ItemShare.savedVars.locationReserves
+    local locationReserves = GuildsBounty.savedVars.locationReserves
     if type(locationReserves) == "table" then
         for placeKey, amount in pairs(locationReserves) do
             local link, locationKey = string.match(tostring(placeKey or ""), "^(.*)||([^|]*)$")
@@ -5641,7 +5641,7 @@ local function PrintShareReserves()
     end
 
     if #rows == 0 then
-        PrintMessage("No item has a share reserve. Set one with /itemshare reserve <amount> <part of the name>.")
+        PrintMessage("No item has a share reserve. Set one with /guildsbounty reserve <amount> <part of the name>.")
         return
     end
 
@@ -5696,10 +5696,10 @@ local function PrintShareReserves()
             ))
         end
     end
-    PrintMessage("Clear one with /itemshare noreserve <part of the name>, or from the item's right-click menu.")
+    PrintMessage("Clear one with /guildsbounty noreserve <part of the name>, or from the item's right-click menu.")
 end
 
--- /itemshare expire <days> is a statement about the list, not about one item, so it
+-- /guildsbounty expire <days> is a statement about the list, not about one item, so it
 -- is kept in the saved variables and read when a badge is painted. That is what makes
 -- it apply by itself after a reload, and on the next inventory, bank or storage view.
 local function SetShareExpireDays(rawArg)
@@ -5719,16 +5719,16 @@ local function SetShareExpireDays(rawArg)
         else
             PrintMessage("No expire limit is set, so no share shows the stopwatch.")
         end
-        PrintMessage("Use /itemshare expire <days> to mark shares older than that many days, or /itemshare expire 0 to stop marking them.")
+        PrintMessage("Use /guildsbounty expire <days> to mark shares older than that many days, or /guildsbounty expire 0 to stop marking them.")
         return
     end
 
     if not days or days < 0 or days ~= math.floor(days) then
-        PrintMessage("Usage: /itemshare expire <days>   (0 turns the stopwatch off)")
+        PrintMessage("Usage: /guildsbounty expire <days>   (0 turns the stopwatch off)")
         return
     end
 
-    ItemShare.savedVars.expireDays = days
+    GuildsBounty.savedVars.expireDays = days
     TryRefreshInventoryVisuals()
     RefreshShareListWindowIfVisible()
 
@@ -5749,30 +5749,30 @@ end
 -- up missing from the help, and how a line that made no sense survived in both copies.
 local function PrintCommandHelp()
     PrintMessage("Commands:")
-    PrintMessage("/itemshare list      - Open the shared items window")
-    PrintMessage("/itemshare reset     - Clear all shared entries")
-    PrintMessage("/itemshare sync      - Recount and drop shares you no longer own, in bags that are readable now")
-    PrintMessage("/itemshare rebuild   - Rewrite every shared item from your current bags (also runs on login and when a storage closes)")
-    PrintMessage("/itemshare save      - Reload the UI")
-    PrintMessage("/itemshare guilds    - Show the guilds this character's shares are matched against")
-    PrintMessage("/itemshare always    - List the items you always offer, in or out of your bags")
-    PrintMessage("/itemshare noalways  - Stop always sharing one: /itemshare noalways <part of the name>")
-    PrintMessage("/itemshare reserve N <name> - Share only what you hold above N of that item")
-    PrintMessage("/itemshare noreserve <name> - Share everything you hold of that item again")
-    PrintMessage("/itemshare reserves  - List the items you keep a reserve on")
-    PrintMessage("/itemshare expire N  - Show a stopwatch on shares older than N days (0 turns it off)")
-    PrintMessage("/itemshare server    - Show the platform and megaserver this file is recorded for")
-    PrintMessage("/itemshare guildbank - Turn sharing from the guild bank on or off (the bag is only read while this is on)")
-    PrintMessage("/itemshare scan      - Share every unbound furnishing placed in the house you own and are standing in (same as scan house)")
-    PrintMessage("/itemshare scan clear - Clear every share filed as Placed (<house>) for the house you are standing in")
-    PrintMessage("/itemshare autoscan  - Turn the reads that happen on their own on or off: /itemshare autoscan on|off")
-    PrintMessage("/itemshare protect   - Turn the lock on a shared copy on or off: mailing and trading still work")
+    PrintMessage("/guildsbounty list      - Open the shared items window")
+    PrintMessage("/guildsbounty reset     - Clear all shared entries")
+    PrintMessage("/guildsbounty sync      - Recount and drop shares you no longer own, in bags that are readable now")
+    PrintMessage("/guildsbounty rebuild   - Rewrite every shared item from your current bags (also runs on login and when a storage closes)")
+    PrintMessage("/guildsbounty save      - Reload the UI")
+    PrintMessage("/guildsbounty guilds    - Show the guilds this character's shares are matched against")
+    PrintMessage("/guildsbounty always    - List the items you always offer, in or out of your bags")
+    PrintMessage("/guildsbounty noalways  - Stop always sharing one: /guildsbounty noalways <part of the name>")
+    PrintMessage("/guildsbounty reserve N <name> - Share only what you hold above N of that item")
+    PrintMessage("/guildsbounty noreserve <name> - Share everything you hold of that item again")
+    PrintMessage("/guildsbounty reserves  - List the items you keep a reserve on")
+    PrintMessage("/guildsbounty expire N  - Show a stopwatch on shares older than N days (0 turns it off)")
+    PrintMessage("/guildsbounty server    - Show the platform and megaserver this file is recorded for")
+    PrintMessage("/guildsbounty guildbank - Turn sharing from the guild bank on or off (the bag is only read while this is on)")
+    PrintMessage("/guildsbounty scan      - Share every unbound furnishing placed in the house you own and are standing in (same as scan house)")
+    PrintMessage("/guildsbounty scan clear - Clear every share filed as Placed (<house>) for the house you are standing in")
+    PrintMessage("/guildsbounty autoscan  - Turn the reads that happen on their own on or off: /guildsbounty autoscan on|off")
+    PrintMessage("/guildsbounty protect   - Turn the lock on a shared copy on or off: mailing and trading still work")
     PrintMessage("Right-click an item - Add to Share, Always Share This Item, Share Reserve")
 end
 
 local function OnSlashCommand(arg)
-    if not ItemShare.savedVars then
-        PrintMessage("The addon has not finished loading, so there is nothing to run yet. If this never changes, check the addon folder is named ItemShare.")
+    if not GuildsBounty.savedVars then
+        PrintMessage("The addon has not finished loading, so there is nothing to run yet. If this never changes, check the addon folder is named GuildsBounty.")
         return
     end
 
@@ -5782,7 +5782,7 @@ local function OnSlashCommand(arg)
     if lowerArg == "" then
         PrintCommandHelp()
     elseif lowerArg == "list" then
-        local window = ItemShare.ui and ItemShare.ui.listWindow
+        local window = GuildsBounty.ui and GuildsBounty.ui.listWindow
         if window and not window:IsHidden() then
             window:SetHidden(true)
             SaveListWindowState()
@@ -5841,13 +5841,13 @@ local function OnSlashCommand(arg)
     elseif string.match(lowerArg, "^reserve%s+") then
         local amount, needle = rawArg:match("^%s*[Rr]eserve%s+(%d+)%s+(.+)$")
         if not amount then
-            PrintMessage("Usage: /itemshare reserve <amount to keep> <part of the item name>")
+            PrintMessage("Usage: /guildsbounty reserve <amount to keep> <part of the item name>")
         else
             SetShareReserveByName(zo_strtrim(needle), tonumber(amount) or 0)
         end
     elseif lowerArg == "protect" then
-        local wasEnabled = ItemShare.savedVars.shareProtection ~= false
-        ItemShare.savedVars.shareProtection = not wasEnabled
+        local wasEnabled = GuildsBounty.savedVars.shareProtection ~= false
+        GuildsBounty.savedVars.shareProtection = not wasEnabled
         PrintMessage(string.format(
             "Share protection %s. %s",
             wasEnabled and "off" or "on",
@@ -5858,19 +5858,19 @@ local function OnSlashCommand(arg)
     elseif lowerArg == "server" then
         PrintServerEnvironment()
     elseif lowerArg == "guildbank" then
-        local current = ItemShare.savedVars.guildBankSharingEnabled == true
-        ItemShare.savedVars.guildBankSharingEnabled = not current
+        local current = GuildsBounty.savedVars.guildBankSharingEnabled == true
+        GuildsBounty.savedVars.guildBankSharingEnabled = not current
 
         PrintMessage(string.format(
             "Guild bank sharing %s. %s",
-            ItemShare.savedVars.guildBankSharingEnabled and "enabled" or "disabled",
-            ItemShare.savedVars.guildBankSharingEnabled
+            GuildsBounty.savedVars.guildBankSharingEnabled and "enabled" or "disabled",
+            GuildsBounty.savedVars.guildBankSharingEnabled
                 and "The guild bank is read from now on, when it is open."
                 or "The guild bank is no longer read at all."
         ))
         RefreshShareListWindowIfVisible()
     elseif lowerArg == "autoscan" or string.match(lowerArg, "^autoscan%s+on$") or string.match(lowerArg, "^autoscan%s+off$") then
-        local wasOn = ItemShare.savedVars.autoScan ~= false
+        local wasOn = GuildsBounty.savedVars.autoScan ~= false
         local isOn
 
         if string.match(lowerArg, "^autoscan%s+on$") then
@@ -5881,7 +5881,7 @@ local function OnSlashCommand(arg)
             isOn = not wasOn
         end
 
-        ItemShare.savedVars.autoScan = isOn
+        GuildsBounty.savedVars.autoScan = isOn
         PrintMessage(string.format(
             "Automatic bag reads %s. %s",
             isOn and "on" or "off",
@@ -5895,20 +5895,20 @@ local function OnSlashCommand(arg)
 end
 
 -- ESO hands this event the addon's folder name, not the Title in the manifest. A copy
--- unzipped from GitHub arrives as "ItemShare-main", so an exact comparison loaded this
+-- unzipped from GitHub arrives as "GuildsBounty-main", so an exact comparison loaded this
 -- file, showed its version, and then returned before registering a single command,
 -- event or message - which looks exactly like an addon that is running but mute.
-local function IsItemShareAddonName(name)
+local function IsGuildsBountyAddonName(name)
     local lower = zo_strlower(tostring(name or ""))
-    return lower == "itemshare" or string.sub(lower, 1, #"itemshare") == "itemshare"
+    return lower == "guildsbounty" or string.sub(lower, 1, #"guildsbounty") == "guildsbounty"
 end
 
 local function OnAddonLoaded(event, addonName)
-    if not IsItemShareAddonName(addonName) then
+    if not IsGuildsBountyAddonName(addonName) then
         return
     end
 
-    EVENT_MANAGER:UnregisterForEvent(ItemShare.name, EVENT_ADD_ON_LOADED)
+    EVENT_MANAGER:UnregisterForEvent(GuildsBounty.name, EVENT_ADD_ON_LOADED)
 
     -- Said first, before any setup that could go wrong, so a silent failure cannot be
     -- mistaken for a command that did not run.
@@ -5917,16 +5917,16 @@ local function OnAddonLoaded(event, addonName)
         ADDON_VERSION,
         tostring(addonName)
     ))
-    if tostring(addonName) ~= ItemShare.name then
+    if tostring(addonName) ~= GuildsBounty.name then
         PrintMessage(string.format(
             "That folder name is not '%s'. Renaming it to '%s' is what the update instructions expect.",
-            ItemShare.name,
-            ItemShare.name
+            GuildsBounty.name,
+            GuildsBounty.name
         ))
     end
 
-    ItemShare.savedVars = ZO_SavedVars:NewAccountWide(
-        "ItemShareSavedVars",
+    GuildsBounty.savedVars = ZO_SavedVars:NewAccountWide(
+        "GuildsBountySavedVars",
         SAVED_VARS_VERSION,
         GetWorldName(),
         defaults
@@ -5936,14 +5936,14 @@ local function OnAddonLoaded(event, addonName)
     -- tables over rather than reading around an old shape. Shares come back from the
     -- bags on the rebuild that runs at login; standing offers and reserves are set by
     -- hand rather than read from a bag, so they start empty.
-    if tonumber(ItemShare.savedVars.schema) ~= SAVED_VARS_VERSION then
-        ItemShare.savedVars.sharedItems = {}
-        ItemShare.savedVars.alwaysShare = {}
-        ItemShare.savedVars.reserves = {}
-        ItemShare.savedVars.locationReserves = {}
-        ItemShare.savedVars.guilds = {}
-        ItemShare.savedVars.characterGuilds = {}
-        ItemShare.savedVars.schema = SAVED_VARS_VERSION
+    if tonumber(GuildsBounty.savedVars.schema) ~= SAVED_VARS_VERSION then
+        GuildsBounty.savedVars.sharedItems = {}
+        GuildsBounty.savedVars.alwaysShare = {}
+        GuildsBounty.savedVars.reserves = {}
+        GuildsBounty.savedVars.locationReserves = {}
+        GuildsBounty.savedVars.guilds = {}
+        GuildsBounty.savedVars.characterGuilds = {}
+        GuildsBounty.savedVars.schema = SAVED_VARS_VERSION
     end
 
     GetAlwaysShareTable()
@@ -5963,7 +5963,7 @@ local function OnAddonLoaded(event, addonName)
         ))
     end
 
-    ItemShare.savedVars.addonVersion = ADDON_VERSION
+    GuildsBounty.savedVars.addonVersion = ADDON_VERSION
     -- The platform and megaserver are read once per load, before anything is offered:
     -- every entry in the file belongs to them, and the site matches on them.
     CaptureServerEnvironment()
@@ -5980,7 +5980,7 @@ local function OnAddonLoaded(event, addonName)
         end, 3000)
     end
 
-        EVENT_MANAGER:RegisterForEvent(ItemShare.name, EVENT_GUILD_SELF_LEFT_GUILD, function()
+        EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_GUILD_SELF_LEFT_GUILD, function()
             -- The guild list is not always updated in the same frame as the event, so the
             -- snapshot is taken again shortly afterwards rather than immediately.
             if zo_callLater then
@@ -5991,7 +5991,7 @@ local function OnAddonLoaded(event, addonName)
             end
         end)
 
-        EVENT_MANAGER:RegisterForEvent(ItemShare.name, EVENT_PLAYER_ACTIVATED, function()
+        EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_PLAYER_ACTIVATED, function()
             -- The baseline is taken before the first pass, so the first bank opened in a
             -- session is still noticed as a place that was not readable a moment ago.
             NoticeReadableBags()
@@ -6012,11 +6012,11 @@ local function OnAddonLoaded(event, addonName)
     -- items while their window is open: an unopened one reports no slots, and a pass that
     -- cannot see a place is not allowed to judge what is filed there. So opening one is
     -- the only moment its contents can be read at all, which is why it asks for a pass.
-        EVENT_MANAGER:RegisterForEvent(ItemShare.name, EVENT_ZONE_CHANGED, function()
+        EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_ZONE_CHANGED, function()
             ScheduleAutoReconcile("a new zone")
         end)
 
-        EVENT_MANAGER:RegisterForEvent(ItemShare.name, EVENT_CLOSE_BANK, function()
+        EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_CLOSE_BANK, function()
             ScheduleAutoReconcile("the bank closing")
         end)
 
@@ -6025,7 +6025,7 @@ local function OnAddonLoaded(event, addonName)
     -- file already had rather than losing them, because a pass cannot judge what it cannot
     -- read.
         if EVENT_PLAYER_DEACTIVATED then
-            EVENT_MANAGER:RegisterForEvent(ItemShare.name, EVENT_PLAYER_DEACTIVATED, function()
+            EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_PLAYER_DEACTIVATED, function()
                 ScanBeforeLogout()
             end)
         end
@@ -6058,7 +6058,7 @@ local function OnAddonLoaded(event, addonName)
         end)
     end
 
-    if ItemShare.savedVars.listWindowState and ItemShare.savedVars.listWindowState.isOpen then
+    if GuildsBounty.savedVars.listWindowState and GuildsBounty.savedVars.listWindowState.isOpen then
         PrintSharedItems()
     else
         CreateShareListWindow()
@@ -6079,10 +6079,10 @@ local function OnAddonLoadedGuarded(event, addonName)
     end
 end
 
-EVENT_MANAGER:RegisterForEvent(ItemShare.name, EVENT_ADD_ON_LOADED, OnAddonLoadedGuarded)
+EVENT_MANAGER:RegisterForEvent(GuildsBounty.name, EVENT_ADD_ON_LOADED, OnAddonLoadedGuarded)
 
 -- Registered here rather than inside the load handler: the file only runs if the addon
 -- is enabled, so the command exists as soon as the addon does, and a setup error later
 -- in the handler can no longer leave the player with a slash command that does nothing.
-SLASH_COMMANDS["/itemshare"] = OnSlashCommand
+SLASH_COMMANDS["/guildsbounty"] = OnSlashCommand
 SLASH_COMMANDS["/ishare"] = OnSlashCommand

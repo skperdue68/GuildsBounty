@@ -9,8 +9,8 @@ Run it from the repository root:
 
     python3 tools/make_reserve_only_badge.py
 
-It needs Python 3 and Pillow, and writes media/itemshare_reserve_only.dds, which the
-addon loads, plus a media/itemshare_reserve_only.png preview beside it. The preview is
+It needs Python 3 and Pillow, and writes media/guildsbounty_reserve_only.dds, which the
+addon loads, plus a media/guildsbounty_reserve_only.png preview beside it. The preview is
 not tracked; the game never runs this file. It is here so the texture can be rebuilt
 from source rather than redrawn by hand.
 """
@@ -111,8 +111,8 @@ def main():
     media = root / "media"
     badge = draw_badge()
 
-    png_path = media / "itemshare_reserve_only.png"
-    dds_path = media / "itemshare_reserve_only.dds"
+    png_path = media / "guildsbounty_reserve_only.png"
+    dds_path = media / "guildsbounty_reserve_only.dds"
     badge.save(png_path)
     dds_path.write_bytes(dds_bytes(badge))
 

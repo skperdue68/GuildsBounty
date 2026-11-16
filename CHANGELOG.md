@@ -1,14 +1,36 @@
 # Changelog
 
 Two things ship together: the addon in this repository, and the website it feeds at
-https://itemshare.perdues.me ([ItemShare-Web](https://github.com/skperdue68/ItemShare-Web)).
+https://guildsbounty.perdues.me ([GuildsBounty-Web](https://github.com/skperdue68/GuildsBounty-Web)).
 The addon has version numbers; the website does not, so its history is grouped by what
 it does rather than by release.
 
-Newest first. The addon's version is the one in `ItemShare.txt`, and the same number is
+Newest first. The addon's version is the one in `GuildsBounty.txt`, and the same number is
 in the addon's status messages.
 
 ## Addon
+
+### 1.12.0
+- **The addon is Guild's Bounty.** The folder, the manifest and the source file are
+  `GuildsBounty`, the badges are `media/guildsbounty_*.dds`, the saved variables are
+  `GuildsBountySavedVars`, the keybind actions are `GUILDSBOUNTY_TOGGLE_SHARE` and
+  `GUILDSBOUNTY_TOGGLE_ALWAYS_SHARE`, and the messages, the chat prefix, the window names
+  and the docs all say Guild's Bounty. The repository is
+  https://github.com/skperdue68/GuildsBounty.
+- **`/itemshare` is `/guildsbounty`.** `/ishare` is unchanged and so is every subcommand.
+  A macro that spells the long command out needs the new name.
+- **To keep your list, rename the saved file.** ESO reads only the name the manifest
+  declares, so this version starts empty where the old one left off. Before you log in,
+  rename `SavedVariables/ItemShareSavedVars.lua` to
+  `SavedVariables/GuildsBountySavedVars.lua`, and delete the old `ItemShare` folder from
+  `AddOns` - two copies of the addon under different folder names both load. Without the
+  renamed file the share list is rebuilt from your bags at login, while standing offers and
+  reserves are set by hand and start empty.
+- **A key you bound yourself has to be bound again.** The keybind action names changed, so
+  the old binding no longer matches anything; the two actions sit in ESC - Controls -
+  Keybinds under Guild's Bounty.
+- The links follow the site to https://guildsbounty.perdues.me and to the GuildsBounty-Web
+  repository.
 
 ### 1.11.44
 - **Fixed: items in the house storage chests and the furnishing vault no longer disappear
@@ -235,7 +257,7 @@ in the addon's status messages.
   use it" for a standing offer.
 
 ### 1.11.26
-- Two keybinds, in the game's own list under Controls - Keybinds - **ItemShare**: **Toggle share**
+- Two keybinds, in the game's own list under Controls - Keybinds - **GuildsBounty**: **Toggle share**
   and **Toggle always share**. Both act on the item you hovered last, since a keybind has no row
   to click, and pressing the same key again turns the state back off.
 - Turning one on turns the other off, which is what the menus already do: sharing a copy replaces
@@ -334,8 +356,8 @@ in the addon's status messages.
   `Id64ToString` instead of showing as a raw 64-bit number.
 
 ### 1.11.15
-- The addon now loads from a folder whose name is not exactly `ItemShare`, which is what a
-  GitHub zip produces (`ItemShare-main`). The name check was an exact match, so those copies
+- The addon now loads from a folder whose name is not exactly `GuildsBounty`, which is what a
+  GitHub zip produces (`GuildsBounty-main`). The name check was an exact match, so those copies
   loaded the file, showed their version in the addon list, and then returned before
   registering any command or event - the addon appeared to be running but answered nothing.
 - The commands are registered outside the load handler, and say so if the addon has not
@@ -350,7 +372,7 @@ in the addon's status messages.
   but never read. Saved files keep the old keys harmlessly; new files no longer create them.
 
 ### 1.11.13
-- Every message goes through one function that posts a coloured `[ItemShare]` system
+- Every message goes through one function that posts a coloured `[GuildsBounty]` system
   message, the way GuildSync does. The old sink was gated on `/ishare debug` and called a
   `d()` helper this file no longer defines, so command output was being dropped instead of
   shown - a command that printed nothing really had printed nothing.
@@ -437,7 +459,7 @@ in the addon's status messages.
 - Age comes from the date a share was first made, which survives re-sharing, moving and
   syncing: only removing a share and making it again restarts the clock. Nothing is
   hidden or removed by the limit.
-- New badge art, `media/itemshare_expired.dds`, drawn by `tools/make_expired_badge.py`.
+- New badge art, `media/guildsbounty_expired.dds`, drawn by `tools/make_expired_badge.py`.
 
 ### 1.11.5
 - Placed furnishings are tracked per house. A piece on display in two homes is two rows,
@@ -588,7 +610,7 @@ in the addon's status messages.
 ### 1.2.1
 - Added sample data, and a link to a template Google Sheet for easier setup.
 
-## Companion website (ItemShare-Web)
+## Companion website (GuildsBounty-Web)
 
 The site is what turns the saved file into something other people can use, and it is
 where most of the work has gone since it became a repository of its own. It has no
