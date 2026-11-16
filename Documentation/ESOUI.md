@@ -6,13 +6,13 @@ when the addon changes, instead of drifting away from it. The full description
 describes behaviour, so a change to a command, a badge, a location or the website
 belongs here too.
 
-The site the addon feeds is https://itemshare.perdues.me; its source is
-https://github.com/skperdue68/ItemShare-Web.
+The site the addon feeds is https://guildsbounty.perdues.me; its source is
+https://github.com/skperdue68/GuildsBounty-Web.
 
 ## Short description
 
 Mark items in your bags, bank, house storage or furnishing vault as shareable, then
-upload the file the addon writes to itemshare.perdues.me so guild members can see what
+upload the saved variables file the addon writes to guildsbounty.perdues.me so guild members can see what
 you are offering and request it.
 
 ## Full description
@@ -27,7 +27,7 @@ description field.
 
 [hr]
 
-ItemShare keeps track of the tradeable items you are willing to hand out, so you do not have to leave things in a guild bank, post lists in chat, or remember what you promised whom. You mark an item with one right-click, the addon records it in a saved file, and you upload that file to [url=https://itemshare.perdues.me]itemshare.perdues.me[/url], where other players browse what is on offer and request what they need.
+Guilds Bounty keeps track of the tradeable items you are willing to hand out, so you do not have to leave things in a guild bank, post lists in chat, or remember what you promised whom. You mark an item with one right-click, the addon records it in a saved file, and you upload that file to [url=https://guildsbounty.perdues.me]guildsbounty.perdues.me[/url], where other players browse what is on offer and request what they need.
 
 [color=#E3B341][b]Requires LibCustomMenu.[/b][/color] Please install it first. The right-click entries that do all the work come from that library, and without it the addon has very little it can do.
 
