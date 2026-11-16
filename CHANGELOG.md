@@ -10,7 +10,7 @@ in the addon's status messages.
 
 ## Addon
 
-### 1.11.44
+### 1.12.0
 - **The addon is Guilds Bounty.** The folder, the manifest and the source file are
   `GuildsBounty`, the badges are `media/guildsbounty_*.dds`, the saved variables are
   `GuildsBountySavedVars`, the keybind actions are `GUILDSBOUNTY_TOGGLE_SHARE` and
@@ -29,6 +29,8 @@ in the addon's status messages.
   Keybinds under Guilds Bounty.
 - The links follow the site to https://guildsbounty.perdues.me and to the GuildsBounty-Web
   repository.
+
+### 1.11.44
 - **Fixed: items in the house storage chests and the furnishing vault no longer disappear
   while you are away from the house.** A house chest and the vault are only read while you
   are actually standing in a house. Outside one, the game can keep answering with the last
