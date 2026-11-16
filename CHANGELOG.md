@@ -1,641 +1,104 @@
-# Changelog
+# Guilds Bounty changelog
 
-Two things ship together: the addon in this repository, and the website it feeds at
-https://guildsbounty.perdues.me ([GuildsBounty-Web](https://github.com/skperdue68/GuildsBounty-Web)).
-The addon has version numbers; the website does not, so its history is grouped by what
-it does rather than by release.
-
-Newest first. The addon's version is the one in `GuildsBounty.txt`, and the same number is
-in the addon's status messages.
-
-## Addon
+## Add-on
 
 ### 1.12.0
-- **The addon is Guilds Bounty.** The folder, the manifest and the source file are
-  `GuildsBounty`, the badges are `media/guildsbounty_*.dds`, the saved variables are
-  `GuildsBountySavedVars`, the keybind actions are `GUILDSBOUNTY_TOGGLE_SHARE` and
-  `GUILDSBOUNTY_TOGGLE_ALWAYS_SHARE`, and the messages, the chat prefix, the window names
-  and the docs all say Guilds Bounty. The repository is
-  https://github.com/skperdue68/GuildsBounty.
-- **The commands are `/gbounty` and `/guildsbounty`.** Both do the same thing and every
-  subcommand is unchanged. The command was `/ishare` before this release and is no longer
-  registered, so a macro that types it needs one of the two names.
-- **The saved variables are `GuildsBountySavedVars`.** ESO reads only the name the manifest
-  declares, so a file written under the previous name is not read: the share list rebuilds
-  from your bags at login, and standing offers and reserves, which are set by hand, start
-  empty.
-- **A key you bound yourself has to be bound again.** The keybind action names changed, so
-  the old binding no longer matches anything; the two actions sit in ESC - Controls -
-  Keybinds under Guilds Bounty.
-- The links follow the site to https://guildsbounty.perdues.me and to the GuildsBounty-Web
-  repository.
-
-### 1.11.44
-- **Fixed: items in the house storage chests and the furnishing vault no longer disappear
-  while you are away from the house.** A house chest and the vault are only read while you
-  are actually standing in a house. Outside one, the game can keep answering with the last
-  size it knew for those bags, and a pass that believed that size decided every item in the
-  chest had been given away: the row was removed, and the item went with it, while the chest
-  itself was untouched. Both index builders now skip a house bag unless
-  `GetCurrentZoneHouseId` says you are inside a house, and a client that cannot answer at all
-  counts as outside.
-- A share is only followed to another place when the place it was filed in could be read.
-  Finding the same item in your backpack used to move a chest row there even though the chest
-  had not been looked at, which stranded the chest copy; now the row stays where it is filed
-  until that bag is read and the item genuinely is not in it.
-- Housing storage and the furnishing vault are labelled `Housing Storage (Kitchen)` and
-  `Furnishing Vault (Lumber)`: the prefix says what kind of place it is and the brackets hold
-  the nickname you gave the chest. A chest you have not renamed reads `Housing Storage`, with
-  no brackets and no chest number, and the vault no longer shows the zone you were standing
-  in. Labels written by older versions, including `House Storage 8` and `Furnishing Vault
-  (Mournoth Keep)`, still map to the same locations, so existing shares keep their rows.
+- Renamed to Guilds Bounty: the folder, the addon file and the saved file are `GuildsBounty`, `GuildsBounty.lua` and `GuildsBountySavedVars`. The badges, keybind actions, chat prefix and window names followed the name.
+- The commands are `/gbounty` and `/guildsbounty`. Both do the same thing; the old command is gone, so a macro that types it needs one of the two names.
+- The saved file from before is not read: shares rebuild from your bags at login, standing offers and reserves start empty, and a key you bound yourself has to be bound again.
+- Fixed items in the house storage chests and the furnishing vault going missing from the list while you were away from the house. Housing storage and the vault now read `Housing Storage (Kitchen)` and `Furnishing Vault (Lumber)`, or just the first two words when the chest has no nickname.
 
 ### 1.11.43
-- `/gbounty scanmessages` is gone, and so is every line it turned on: a pass no longer says
-  anything in chat as it starts, when it finishes reading, or at logout. The setting it wrote
-  to the saved file is no longer saved either, so a file written by an older version simply
-  drops it on its next save.
-- `/gbounty scan bags` is gone. A pass now runs on its own when a storage closes, at login, on
-  a zone change and at logout, and `/gbounty rebuild` still does the same work on demand.
-- `/gbounty scan raw` (and its `/gbounty raw` alias) is gone. It was added to tell a slow read
-  from slow work after it, which it did, and the answer moved the work into slices.
-- The help line for `rebuild` said it runs "when a bank opens"; it says "when a storage
-  closes", which is what it has done since 1.11.39.
-
-### 1.11.42
-- A pass is now sliced all the way through, not just over the bags. It was three pieces of
-  work - read the slots, decide what each share becomes, close the pass out - and only the
-  first was spread over frames, which left the part that actually costs (rebuilding entries,
-  writing them back, repainting badges) in the single frame that finished the read. The
-  shares are now carried through 25 at a time with 60 ms between slices, and the queued
-  slices finish the pass on their own.
-- The badges and the list are repainted once, when the pass is done, instead of on every
-  entry: `SaveSharedEntry` used to repaint every visible row each time it was called, which
-  during a rebuild of a few hundred entries was the bulk of the stall.
-- The read now says what it finished - `Bag read finished (a storage closing) - working the
-  changes through.` - and the counts line that follows is the end of the pass, rather than
-  one frame pretending to be both.
-- Commands still answer on the spot: `/gbounty rebuild`, `/gbounty save` and `/gbounty sync`
-  run the pass in one go, and the logout read is still synchronous, because there the file
-  has to be written before the client goes.
-
-### 1.11.41
-- A share is only ever removed from a bag that was actually read. If a bag could not be
-  seen - an unopened bank, a house chest in a house you are not standing in, a guild bank
-  with guild bank sharing off - the shares filed there are left alone, and because the
-  share stays, so does the item's first-dumped date. A bag that was read and no longer
-  holds the item is where a share is dropped, and only then.
-- A piece filed by a house scan is judged only by a scan of that house: a bag pass never
-  removes one, and the house scan removes only rows keyed to the house it is standing in.
-- The date index is now pruned wherever an offer is taken away, not just by a sync, a
-  rebuild, or removing a share by hand: taking an item off the always-shared list, clearing
-  a house, a guild whose membership has changed, and the login cleanup of old placed keys
-  all prune it too. An item offered nowhere loses its date, so being shared again later
-  starts a new one instead of inheriting a stale one.
-
-### 1.11.40
-- An entry in `sharedItems` and `alwaysShare` now keeps only the fields that are read:
-  the ones the website has a column for, the place and count the reserve and AVAILABLE
-  columns need, and the bag and slot the share list checks when it offers a right-click.
-  Everything else is gone - most of all `esoDetails`, a packed dump of every getter the
-  client answered for an item, which was about half of each entry and which nothing has
-  ever read back. Per entry that is fourteen fields, one of them a table of a dozen more.
-- Those getters are no longer called at all when a slot is read, so a full bag read does
-  less work as well as taking less room: the type, quality and trait names, the set, the
-  enchantment and style names and the level and champion point requirements are all that
-  is asked for now.
-- An existing file is stripped at login: the dropped fields are removed from every entry
-  in `sharedItems` and `alwaysShare` in place, so what is offered, where, and how many are
-  untouched and nothing else in the file is rewritten.
-
-### 1.11.39
-- A storage is read when it closes, not when it opens. Opening one is a look, and a look
-  followed by a deposit would be read twice for nothing; the close is where the contents are
-  settled. The bank opening is no longer a reason to read at all.
-- Every read starts by naming the bags it can see - `Backpack, Bank, House chest 1` - rather
-  than counting them, so a pass that cannot see the bank says so by leaving it out.
-- A reload now says so. `/reloadui` runs the load handler and fires the same event a login
-  does, so the client's own uptime decides the word: a client that has just started reads as
-  `login`, one that has been up for a couple of minutes reads as `a UI reload`.
-- The date an item went on offer is no longer copied onto each share row: it lives only in the
-  link-keyed table. An old row keeps its field until the login seed moves the date across and
-  clears it, and the stopwatch badge asks the table by item.
-
-### 1.11.38
-- `/gbounty scan raw` reads every bag it can see and keeps nothing: no share is written, nothing is
-  compared, no pass is scheduled. It reports which bags were readable, how long each took, how many
-  slots and items it walked, and the total, so a slow read can be told apart from slow work after it.
-  `/gbounty raw` means the same thing.
-- The date an item went on offer belongs to the item, not to the place a copy was found. It is now
-  stored once, keyed by the item link, and each share only carries a copy of it for the file the
-  website reads - so sharing the same thing from a second bag, or moving a copy between the bank and
-  a house chest, no longer gives it two different ages. The date is written when the item is first
-  offered and never moved after that; it is dropped only when the item is offered nowhere at all, and
-  sharing it again after that starts a new one.
-- A file written before this carries the date on each row: at login the oldest row per item is taken
-  as the item's date and written back onto every row for it, so two rows that disagreed agree from
-  the first read on.
-
-### 1.11.37
-- Automatic bag reads can be turned off: `/gbounty autoscan` toggles them, `/gbounty autoscan off`
-  and `/gbounty autoscan on` say which way. Off, nothing is read at login, on a zone change, when a
-  storage becomes readable or at logout, and only a command reads your bags - which is what to try
-  while chasing a client that locks up with this addon loaded.
-- `/gbounty scan bags` reads your bags and rewrites every share from what is in them, on request, in
-  the same slices an automatic read uses so nothing hitches. `/gbounty rebuild` still does the same
-  work in a single go.
-- `/gbounty scan` still shares the furnishings placed in the house you are standing in, and
-  `/gbounty scan house` now says that out loud; `scan clear` is unchanged.
-
-### 1.11.36
-- Items in a bank, a house chest, the furnishing vault or the guild bank are seen again. Those
-  places only give up their items while their window is open - at login they report no slots - and
-  a pass is not allowed to judge a place it cannot read, so the only read that ever caught them was
-  the one that ran whenever a slot changed. With that gone, anything put into a storage since the
-  last session sat unseen. A pass now runs the moment a storage becomes readable - the bank, a house
-  chest, the furnishing vault and the guild bank all arrive as a scene change, so none of them needs
-  its own event - and again when the bank closes.
-- The bags are also read at logout, which is when the client writes the file: a sliced pass would be
-  cut off part way through, so this one runs to the end in one go. Places that were never opened in
-  that session keep what the file already said about them rather than losing it.
-- Every read says so in chat as it starts and as it ends, and the first line says how many bags it
-  could see - a read that can see three places is not the same read as one that can see sixteen, and
-  an unopened bank counts as none. `/gbounty scanmessages` turns the lines off.
-- The guild bank is only read while guild bank sharing is on. Nothing can be filed there otherwise,
-  and it is one more bag walked on every pass.
+- Resolved issue with incorrectly removing items from list, or setting incorrect offered date
+- Processing after scan was still causing slowness / lockups.   Should not be locking up now during this added slices to processing.
 
 ### 1.11.35
-- The addon reads your bags at login and when you change zone, and nowhere else. It used to read them
-  whenever a slot changed - every pickup, sale, stack split and loot - which meant the most expensive
-  thing it does ran while you were playing. A count can now be a zone out of date; `/gbounty sync` asks
-  for it immediately.
-- The badges cost almost nothing to keep on screen. Every item control the game binds was being
-  re-drawn, re-anchored and re-textured even when nothing about it had changed, and a list rebinds
-  every row it shows on every repaint. A row whose item, place, share state, reserve and counts match
-  what it showed last time is now left alone, and a badge is only re-anchored when the icon under it
-  is actually a different control.
-
-### 1.11.34
-- The inventory pass now reads twenty slots at a time instead of forty, and waits eighty
-  milliseconds between slices instead of forty. Each frame does half the work and gets twice
-  as long back, which is the setting for a client that still stuttered at forty: a full 240-slot
-  bank is twelve short slices, and the counts land a little later than they did - around a
-  second - in exchange for each slice fitting between the client's own drawing.
-
-### 1.11.33
-- Hovering an item no longer writes the protection line into the chat. The client builds a
-  slot's action list as soon as the pointer reaches the slot, and the guard explained its
-  refusal there - so sweeping the mouse across a bag printed a line for every shared item
-  passed over. The menu still leaves out what a share does not allow and the badge still
-  marks the item; the explanation now only appears when you actually ask for something, on a
-  click, a double click or a drag.
-- That guard answers a bag with nothing shared or offered with one table lookup, instead of
-  resolving an item link and a bag for every slot the pointer crosses. On a full bank that
-  is the per-hover cost of the addon gone when it has nothing to protect.
-
-### 1.11.32
-- The inventory pass no longer runs in one frame. It reads the bags forty slots at a time with a
-  forty-millisecond pause between slices, so a full bank is a handful of slices instead of one long
-  hitch, and the counts land a fraction of a second later rather than stalling the client while
-  the bank opens or a stack is picked up. Nothing about what it collects has changed: the sliced
-  pass builds exactly the index the whole-bag pass did.
-- An automatic pass now runs at most once every ten seconds. Events that arrive inside that window
-  are not dropped - one timer re-schedules the pass when the window ends - so a move is still
-  noticed, but a loot run or a trade can no longer cost a scan per item.
-- Rows cost nothing to skip when there is nothing to draw: with no shares, offers or reserves, the
-  marker code answers with one table lookup instead of building and anchoring a badge per item
-  control the game binds - which is every row of every list you open.
-- The explicit commands still scan in one go: `/gbounty sync`, `/gbounty rebuild` and `/gbounty save`
-  are things you asked for and then wait on, and `/gbounty save` reloads the UI straight after, so
-  its pass has to be finished before the prompt appears.
+- Adjusted how often bag scans happen was causing lockups
 
 ### 1.11.31
-- A shared copy can no longer be posted to the guild store by dragging it. Posting was refused
-  from the item's menu and from a click, but the listing is filed from a drop, and a drop never
-  goes through the slot menu the lock watches - so dragging the row onto the sell tab got it
-  through. The pickup itself is now refused while that tab is open, which stops it before
-  anything is filed.
-- Only the guild store's sell tab is affected, and only for an item nobody shared is dragged
-  freely. Mail and trade drags are untouched, and so is every other window.
+- Fixed shared items being listed in a guild store by dragging them onto the sell tab.
 
 ### 1.11.30
-- A share now follows its copy into another place. Bank something that was shared from your bags,
-  move a piece from a chest to the furnishing vault, and the row re-files itself where the item
-  went instead of dropping off the list at the next pass because its old place held nothing.
-  Standing offers do the same, and carry the count of the place the item moved to rather than
-  falling to zero.
-- The move only happens when exactly one place holds the item. Three swords split across two bags
-  and the bank is not an item that moved, and guessing there would put a lock on a copy nobody
-  shared, so the row stays where it was until you say otherwise. A place that cannot be read this
-  session still proves nothing, so nothing moves out of a shut bank.
+- Shares and Always Share offers now follow items moved to another storage location when there is one clear destination.
+- When matching copies are in several locations, the original location is kept rather than guessing.
 
 ### 1.11.29
-- A shared copy can now be banked and taken back out, put into a house storage chest or the
-  furnishing vault and retrieved again, and placed as furniture and picked up. Every one of those
-  moves was refused along with selling and destroying, which made the vaults unusable for exactly
-  the items the share list is about. The lock is keyed to the place a copy was shared from, so the
-  copy stays protected at both ends of the trip.
-- The refusal line now reads "mailing, trading or storing it is all it will allow", so what it
-  says is allowed matches what is.
+- Protected items can now be moved into and out of banks, house storage, and the furnishing vault.
+- Shared furnishings can be placed in a house and picked up again.
 
 ### 1.11.28
-- The share badge now appears at the ragpicker's sell and launder tabs, and in any other window
-  that draws your own items. The badge used to be created by a list's row-setup callback, and the
-  fence paints its rows through a repaint path that callback did not reach, so a shared item went
-  unmarked in the window where it was about to be sold.
-- Rows are now marked from `ZO_Inventory_BindSlot`, the client call that binds every item control
-  to its bag item - its own comment lists "trade, mail, store, backpack, bank, crafting" - so the
-  badge follows the item rather than a list, and a window the addon has never heard of needs no
-  new hook.
+- Sharing badges now appear in more item screens, including the ragpicker's sell and launder tabs.
 
 ### 1.11.27
-- The line printed when a shared copy refuses an action no longer ends by sending you to
-  `/gbounty list` to right-click a row. It names the item and the place, says mailing or trading is
-  all it will allow, and stops there: "Remove the share to use it", or "Stop always sharing it to
-  use it" for a standing offer.
+- Protection messages now explain whether to remove a share or stop Always Share before using an item.
 
 ### 1.11.26
-- Two keybinds, in the game's own list under Controls - Keybinds - **GuildsBounty**: **Toggle share**
-  and **Toggle always share**. Both act on the item you hovered last, since a keybind has no row
-  to click, and pressing the same key again turns the state back off.
-- Turning one on turns the other off, which is what the menus already do: sharing a copy replaces
-  a standing offer of the same item, and making an offer replaces the share.
-- The addon now ships `Bindings.xml`. Without that file - named exactly that - the client does not
-  load addon keybinds at all, however the Lua is written.
+- Added **Toggle share** and **Toggle always share** shortcuts under **Controls > Keybinds > Guilds Bounty**. Hover over an item, then press your assigned key to toggle its sharing mode.
 
 ### 1.11.25
-- A standing offer now holds the copy it is counted from. Marking "Always Share This Item" clears
-  any share of the same item, so it used to be the one state where an item was on your list, was
-  offered to everyone, and was protected by nothing: the offer survived the sale that the share
-  would have refused. The offer is looked up in the place it was marked in and locked the same
-  way, so only mailing and trading are left.
-- Stopping the offer releases the copy, exactly as removing a share does, and `/gbounty protect`
-  still turns the whole lock off.
-- The refusal message now says which of the two is holding the item - "shared from" or "always
-  shared from" - because the two are released from the same row but not by the same click.
+- Always Share items now receive the same protection as ordinary shared items. Stop Always Share to release them.
 
 ### 1.11.24
-- The lock on a shared copy now covers everything the game can be asked to do with it, not just
-  selling and deconstruction. While the share stands, the only things left are mailing it and
-  trading it: destroying, deconstructing, refining, researching, enchanting, charging, repairing,
-  using, equipping, laundering, banking, guild bank, guild store, the craft bag, quickslots and
-  placing it as furniture are all refused.
-- It is written as a list of what is still allowed rather than a list of what is not, so an
-  action this version has never heard of is refused too instead of slipping through.
-- Looking at the item still works - linking it in chat, previewing it, the map and quest entries,
-  marking it as junk or locked, reporting it - and splitting a stack is allowed, because both
-  halves carry the same item link and stay protected.
-- The message names the item and the place it is shared from, and says the way out: remove the
-  share in `/gbounty list`.
+- Expanded protection to prevent accidental destruction, crafting, use, equipping, guild-store listings, and other actions that could consume or change shared items.
+- Viewing details, linking items in chat, and splitting stacks remain available.
 
 ### 1.11.23
-- A share actually refuses to be sold now. The guard asked the game for
-  `ZO_InventorySlot_GetBagAndIndex`, which is not a client function - the helper is
-  `ZO_Inventory_GetBagAndIndex` - so every lookup came back empty, the guard decided nothing in
-  front of it was shared, and a copy shared from your bags went to the merchant.
-- Selling is refused at the click as well as at the menu. With a store open the primary action
-  on a bag slot is the sale itself, decided inside a local function no addon can hook, so that
-  action is stopped for a protected copy instead of relying only on the sell entry never being
-  added.
-- Deconstruction went through the same missing function, so its guard was passing everything
-  through as well; it now reads the slot the way the client does.
+- Fixed protection that was allowing shared items to be sold or deconstructed.
 
 ### 1.11.22
-- The in-game command list is printed from one function instead of two identical copies, so a
-  command can no longer work but be missing from the help. `guildbank` was exactly that: it has
-  always toggled guild bank sharing, and it was in the README and the ESOUI description but not
-  in the help.
-- The last line of the help was `Right-click an item - Share Reserve asks for a number to keep
-  back`, which reads as nonsense on its own. It now names the menu items as they appear:
-  `Add to Share`, `Always Share This Item`, `Share Reserve`.
+- Updated command help to include guild bank sharing and clearer descriptions of the item menu options.
 
 ### 1.11.21
-- The `Rebuild complete. Updated: N, Removed: N, Unchanged: N` line is no longer printed, for
-  either a rebuild or a sync, and neither is the duplicate copy of it that followed the save
-  reminder. The automatic pass on login, bank access, bag changes and trades no longer
-  announces `Shared items refreshed after <reason>` either.
-- Both lines are kept in the source, commented out, so they can be turned back on without
-  being rewritten. The `Use /gbounty save or /reloadui` reminder after an explicit
-  `/gbounty rebuild` still prints.
+- Reduced repeated chat messages when shared items are refreshed.
 
 ### 1.11.20
-- `/gbounty scan` says "Scanning, one moment..." before it reads the house, so the pause on a
-  full house is not a silent one, and finishes with "Scan complete: N unbound items found in
-  <house>", naming bound, collectible and unreadable pieces on the same line when there are any.
-- The one-line-per-piece output is gone, and with it the per-piece placed id and bound state.
-  Bound, collectible and unreadable pieces are counted, not narrated.
-- The bag index a placed piece falls back to is built once per scan instead of once per piece,
-  which was most of the pause on a big house.
-- `/gbounty scan clear` (or `scan reset`) removes every share filed as `Placed (<house>)` for the
-  house you are standing in, so a house scanned by mistake, or one that is no longer the storage
-  house, can be taken back out of the file in one go. Other houses and bag rows are left alone.
-- The house messages no longer say "nothing was scanned" when the command was a clear, and the
-  documentation covers `/gbounty scan` and `/gbounty scan clear` together: one house kept as an
-  item dump, scanned to offer what is in it, cleared when it should not be offered any more.
+- House scans now show a short progress message and a summary when finished.
+- Added `/gbounty scan clear` (or `/gbounty scan reset`) to stop sharing scanned furnishings from your current house.
 
-### 1.11.17
-- Bound state is read again. `GetItemLinkBoundStatus` is not in the client's API, so the
-  link check answered "not bound" for every link and bound furnishings were offered as if
-  they were free to give away. The client's own `IsItemLinkBound` is now the test.
-- `GetPlacedFurnitureLink` returns the item link *and* a collectible link. A collectible
-  furnishing has no item link at all, and reading only the first return made every one of
-  them look like a failed lookup; they are now counted as collectible, apart from pieces
-  whose link genuinely could not be read.
-- A piece with no link now says what the link call answered, so an empty result is
-  distinguishable from a call that was never made or one that raised.
+### 1.11.12–1.11.17
+- Improved add-on startup and house scanning reliability.
+- House scans explain when they cannot run, such as when you are outside a house or visiting someone else's.
+- Removed the old `/gbounty debug` command.
 
-### 1.11.16
-- `/gbounty scan` reads placed furniture the way the housing API actually works: pieces are
-  enumerated by id with `GetNextPlacedHousingFurnitureId`, and each id is asked for its own
-  name, icon, furniture data id and link. The old code counted with a `GetPlacedFurnitureCount`
-  pair that does not exist, then read the data id out of the icon's slot, so every piece was
-  reported as unidentified with a data id of 0.
-- The link comes from `GetPlacedFurnitureLink`, and a housing id prints through
-  `Id64ToString` instead of showing as a raw 64-bit number.
-
-### 1.11.15
-- The addon now loads from a folder whose name is not exactly `GuildsBounty`, which is what a
-  GitHub zip produces (`GuildsBounty-main`). The name check was an exact match, so those copies
-  loaded the file, showed their version in the addon list, and then returned before
-  registering any command or event - the addon appeared to be running but answered nothing.
-- The commands are registered outside the load handler, and say so if the addon has not
-  finished loading, so a failure during setup cannot leave a slash command that is silent.
-- A load line now prints before any setup work, naming the folder it loaded from.
-- If that setup throws, the handler reports the error in chat instead of aborting silently,
-  which is what left the addon looking installed, current and mute.
-
-### 1.11.14
-- Removed code nothing calls: two helpers that were never used, the local character name
-  built at load, and two saved fields written on every platform capture and guild refresh
-  but never read. Saved files keep the old keys harmlessly; new files no longer create them.
-
-### 1.11.13
-- Every message goes through one function that posts a coloured `[GuildsBounty]` system
-  message, the way GuildSync does. The old sink was gated on `/gbounty debug` and called a
-  `d()` helper this file no longer defines, so command output was being dropped instead of
-  shown - a command that printed nothing really had printed nothing.
-- The scan report uses the same function now, so a scan, a sync, a reserve change and the
-  command list all appear in chat without any setting to find first.
-- `/gbounty debug` is gone, along with the saved `debugEnabled` flag it set: messages are
-  always shown now, so the command had nothing left to control.
-
-### 1.11.12
-- `/gbounty scan` now says why it did nothing: outside a house it reports that it only
-  reads the house you are standing in, and in someone else's house it names the owner and
-  refuses, since a piece there is not yours to offer. Both checks use the house id and
-  the house owner, not the zone name.
-- The scan report no longer depends on `/gbounty debug` being on. It was being written
-  through the debug-only message path, which is why a scan in a house could look like it
-  had not run at all.
-
-### 1.11.11
-- A standing offer's number is rewritten within a few seconds of items leaving a bag.
-  Selling, deconstructing, trading away, mailing or destroying the last copy now leaves
-  0 behind instead of the count from the last sync or reload, and a completed trade is
-  caught even when it moves a stack without a slot update.
-
-### 1.11.10
-- A standing offer belongs to the place it was marked in. Marking lockpicks in your bags
-  leaves the stack in the bank unmarked, each place carries its own offer, count and
-  reserve, and stopping one place leaves the others standing.
-- Offers saved by an earlier version are moved onto a place key the first time the addon
-  loads, so nothing has to be marked again.
-
-### 1.11.9
-- Marking an item for always share writes down the place it was marked in and how many
-  that place holds at that moment, so the very first upload carries a number instead of
-  waiting for the next sync to work one out.
-- A standing offer now counts one place: the place it was marked in. Mark a
-  Companion's Cuirass in your bags and it offers what that bag holds; hand the last one
-  over and the next sync leaves the row at 0 offered instead of keeping the old number,
-  and pick one up again and a sync brings it back to 1.
-- The row stays at the place it was marked rather than following the item to whichever
-  bag it turns up in, and a place that cannot be read keeps the number it had, so a shut
-  bank never zeroes an offer.
-- The website only shows a Request button while the marked place holds more than the
-  reserve keeps back, so an offer with nothing behind it cannot be asked for. The demo
-  seed carries both states - one offer with copies and one with none - so the difference
-  is visible without a second player.
+### 1.11.9–1.11.11
+- Always Share offers now track their storage location and available quantity more accurately.
+- Quantities update shortly after items are removed from storage.
 
 ### 1.11.8
-- Share badges now appear in the deconstruction and refinement panels and at the
-  ragpicker, not only in the bags and the bank. Those lists belong to the crafting UI
-  and were never hooked, so a shared piece looked unmarked exactly where it was about
-  to be destroyed.
-- The crafting lists are hooked as each panel opens, and a share toggled while one is
-  open repaints there immediately.
-- An item shared from a place now refuses to be sold or deconstructed from that same
-  place, so an offer cannot be destroyed by accident while it is on the list. The guard
-  is per location: a copy shared from the bags can still be sold out of the bank, and a
-  copy nothing was shared from is untouched. Standing offers lock nothing.
-- Selling is refused at the slot action the vendor builds, and deconstruction at the
-  primary action the panel runs, so a shared piece cannot be added to the
-  deconstruction selection. `/gbounty protect` turns the guard off.
+- Added sharing badges to more crafting and deconstruction screens, including the ragpicker.
+- Added `/gbounty protect` to toggle protection against selling or deconstructing shared items.
 
 ### 1.11.7
-- Placed furniture is no longer inferred. The addon used to guess, on every sync, that
-  a furnishing missing from a readable bag might be standing in whichever house you
-  happened to be in, and it relabelled shares on that guess. That is gone.
-- `/gbounty scan` replaces it, and it is explicit: stand in your storage house and run
-  it, and every non-bound furnishing placed in that house is shared as
-  `Placed (<house>)`, one row per furnishing with the number of copies standing there.
-- The scan is the record for that house, so a piece you picked up is taken back by the
-  next scan, while every other house is left alone because nothing can read it.
-- Bound furnishings are counted and skipped. Rows written by an older version under the
-  old placed-furniture key are discarded at login and again whenever the addon rewrites
-  the file, with a message on login saying to scan again, because there is no way any
-  more to tell a piece that had been picked up from one that was never placed.
+- Added house scanning for placed furnishings you want to share, replacing automatic furniture detection.
 
 ### 1.11.6
-- `/gbounty expire <days>` puts a stopwatch badge on every share that has been on offer
-  that many days or more. It takes the share gift's place in the icon's corner instead
-  of being drawn beside it, in the bags, the bank, house storage and the shared items
-  window.
-- The limit is one saved setting, read whenever a badge is painted, so it applies by
-  itself after a reload and to whatever you open next. `/gbounty expire 0` turns it off,
-  and `/gbounty expire` on its own reports the limit and how many shares are past it.
-- Age comes from the date a share was first made, which survives re-sharing, moving and
-  syncing: only removing a share and making it again restarts the clock. Nothing is
-  hidden or removed by the limit.
-- New badge art, `media/guildsbounty_expired.dds`, drawn by `tools/make_expired_badge.py`.
+- Added `/gbounty expire <days>` to mark older shares with a stopwatch badge. This is a reminder only; items remain shared.
+- Use `/gbounty expire` to check the setting and older-share count, or `/gbounty expire 0` to turn it off.
+- Moving or re-sharing an item keeps its original sharing date.
 
-### 1.11.5
-- Placed furnishings are tracked per house. A piece on display in two homes is two rows,
-  one per house, and a sync inside one of them never renames the other.
-- A row whose named house no longer holds the piece keeps its share and stops naming the
-  house, rather than being dropped.
-
-### 1.11.4
-- The ESOUI page text - the short description and the full BBCode description - is kept
-  in `Documentation/ESOUI.md`, so it is rewritten with the addon instead of drifting
-  away from it.
-- The two HTML documentation pages were removed: they described behaviour the addon no
-  longer has.
-
-### 1.11.3
-- Home storage is recorded under the chest's name, so a row reads `Materials` instead of
-  `House Storage 8`. Renaming a chest relabels its shares on the next rebuild.
-- The `/gbounty sync` summary says what its kept-furnishings count means.
-
-### 1.11.2
-- The reserve-only badge generator (`tools/make_reserve_only_badge.py`) is kept in the
-  repository, so that badge can be redrawn rather than hunted for.
+### 1.11.3–1.11.5
+- Storage chests now display their names instead of numbers. Renamed chests update the next time shares are refreshed.
+- Improved tracking of furniture locations across houses.
 
 ### 1.11.1
-- All five guild slots are written for each character, empty ones included, so a guild
-  that has gone is visible in the file itself. Shares and reserves filed against a guild
-  you have left are removed on login.
+- Shares and reserves for guilds you have left are cleared when you log in.
 
 ### 1.11.0
-- The file records the platform and megaserver it was written on, and the site matches on
-  them: a file written on the North American megaserver is only offered to readers on the
-  same platform and megaserver.
+- Added platform and megaserver tracking so shares are matched to the correct players.
 
-### 1.10.7
-- A bound item is not offered a share reserve, because a reserve on it could never count.
-  A reserve left on an item that has since become bound can still be cleared.
+### 1.10.4–1.10.7
+- Improved counting across stacks and storage locations.
+- Shares and reserves are tracked separately for each location, such as your bags and bank.
+- Bound items can no longer receive new share reserves. Existing reserves can still be cleared.
 
-### 1.10.6
-- Share reserves are kept per storage location: the stack in your bank and the stack in
-  your bags hold their own numbers.
-
-### 1.10.5
-- Each storage location keeps its own count, so a share in your bags and a share in the
-  bank stay two rows, each naming its own place.
-
-### 1.10.4
-- The share list counts every stack of an item rather than only the marked one, names
-  every place the count came from, and reads its numbers from the saved shares instead of
-  measuring the bags again - which is why the bank's row survives with the bank shut.
-
-### 1.10.3
-- Sharing and always sharing became one choice per item, and right-clicking a list row
-  cycles it: not shared, shared, always shared, and back.
-
-### 1.10.2
-- The share badge was redrawn, and a reserve was given its own corner instead of having
-  to be drawn into the same badge.
+### 1.10.2–1.10.3
+- Improved sharing and reserve badges.
+- Right-clicking a row in the shared-items window cycles between Shared, Always Share, and Not Shared.
 
 ### 1.10.1
-- The compatibility layer for older saved files was dropped so stored data starts over,
-  and a reserve set on an item that was never shared is now listed.
+- **Upgrade note:** This release resets sharing data from older versions.
+- Items with a reserve are listed even when they are not shared.
 
-### 1.10.0
-- Guilds are stored once by id rather than copied onto every share, and counts, reserves
-  and location keys are derived when they are needed instead of being stored.
-
-### 1.9.0
-- The website moved to its own repository; this one is the addon only.
-- Reserves are shown both where they are set and where they are seen, and a reserve that
-  leaves nothing to share is badged as such.
-- The saved-variables file is found from the home directory, and removing an item from
-  the site's basket no longer crashes.
-- The Google Sheets export was removed.
-
-### 1.8.8
-- Icons are found for set items, standing offers are listed in the window, and reserves
-  are badged.
-
-### 1.8.7
-- The window repaints after an always-share changes, the list badge is set from the share
-  on every refresh, and the badge tooltip no longer flashes.
-
-### 1.8.6
-- Share reserve: only the quantity held above the reserve is offered.
-
-### 1.8.5
-- Bound items are refused when they are marked, and standing offers are badged in the bag.
-
-### 1.8.4
-- No addon changes; this release carried the website's request work - holds, history,
-  emails and list polish.
-
-### 1.8.3
-- The shared badge was redrawn and put on the item icon, and a Scroll collision was fixed.
-
-### 1.8.2
-- Mostly website: icons are no longer lost, sign-in holds, pages share the site's shell,
-  open pages update live, and the list gains filters and tabs.
-
-### 1.8.1
-- Guilds are stamped onto shares that predate guild capture, and a share with no item link
-  stays visible to its owner.
-
-### 1.8.0
-- Items that are not in your bags can be offered, which is what standing offers are for.
-
-### 1.7.0
-- A share names the exact place it is stored, not just the container.
-
-### 1.6.0
-- Shares are refreshed from your live bags on login and when a bank is accessed.
-
-### 1.5.0
-- Every item field the game client exposes is captured, so the site has the whole item.
-
-### 1.4.0
-- Item icons are captured natively and items are browsed by type; the site shows the item
-  detail it already stores.
-
-### 1.3.0
-- Uploaded files feed a guild-aware database, several ESO accounts can sit under one
-  login, and sign-in covers Discord and Google.
-
-### 1.2.7
-- The file name the upload instructions ask for was corrected, `/gbounty debug` was fixed,
-  and dead code was removed.
-
-### 1.2.6
-- Early saved-variables housekeeping; the leftover `SampleData` folder was removed from
-  the download.
-
-### 1.2.5
-- Search for the same item in a different bag or location when you sync or save, and sync
-  automatically when saving.
-- A line in the shared-items window saying you can right-click to add or remove an item
-  from sharing.
-
-### 1.2.3
-- Corrected an issue with an additional anchor listing that stopped the list window
-  displaying properly.
-- Guild bank sharing turned off while it was refined, behind the toggle it now uses.
-- Row striping and active-row highlighting in the list window for readability.
-- The shared item icon was changed to represent a shared item better.
-
-### 1.2.2
-- Found an issue with the sample data, corrected it, and repackaged.
-
-### 1.2.1
-- Added sample data, and a link to a template Google Sheet for easier setup.
-
-## Companion website (GuildsBounty-Web)
-
-The site is what turns the saved file into something other people can use, and it is
-where most of the work has gone since it became a repository of its own. It has no
-version numbers, so this is grouped by what it does.
-
-- **Accounts.** Sign in with Discord, with Google, or with an email address and a
-  password. One login can hold several ESO accounts, and the list can be browsed as any
-  of them, with requests made on behalf of that character. Account controls sit behind
-  the avatar, and a password can be set through the request flow.
-- **Browsing without uploading.** Visitors can read what is shared before they sign in,
-  and a new sign-in can look around before uploading a file. A demo mode shows the site
-  with sample offers.
-- **The list.** Items carry the game's own quality colours and real icons, and can be
-  filtered live, sorted by column, and read with a tooltip that says what each item is
-  and where it is stored.
-- **Requests.** Ask for one copy or a stack; a basket collects what you are asking for.
-  A request is held on a clock so two people cannot be promised the same copy, and the
-  number held is counted rather than hidden. Both sides keep a history, an owner answers
-  a row at a time, and an answer can be reopened. Guests can ask without signing in and
-  are given a password afterwards.
-- **Mail.** The owner is mailed when something is asked for, and the asker when it is
-  answered; both name the storage location the copy is in. Mail can be rendered to a file
-  for inspection, pointed at a single address, or turned off.
-- **Data.** Uploaded files are imported into a guild-aware database: guilds, ESO accounts
-  and per-location reserves are read from the file's own schema. Item icons are only
-  fetched from UESP when the database is missing one, with a backfill command and a retry
-  timer for the rest.
-- **Holding it up.** A request simulator for testing without a second player, a
-  one-command check for the email setup, a reset for a sign-in that is stuck, and test
-  scripts for grouping, sort order, reserves, guild codes, server identity and demo mode.
+### 1.9.0–1.10.0
+- Made reserves easier to identify, including when nothing remains available to share.
+- Removed Google Sheets export.
