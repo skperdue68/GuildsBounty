@@ -19,13 +19,10 @@ in the addon's status messages.
   https://github.com/skperdue68/GuildsBounty.
 - **The long command is `/guildsbounty`.** `/ishare` is unchanged and so is every
   subcommand; a macro that spells the long one out needs the new name.
-- **To keep your list, rename the saved file.** ESO reads only the name the manifest
-  declares, so a saved file written under the previous name is ignored and this version
-  starts empty. Before you log in, rename that file to
-  `SavedVariables/GuildsBountySavedVars.lua`, and delete the folder the addon was installed
-  in before, because two copies under different folder names both load. Without the renamed
-  file the share list is rebuilt from your bags at login, while standing offers and reserves
-  are set by hand and start empty.
+- **The saved variables are `GuildsBountySavedVars`.** ESO reads only the name the manifest
+  declares, so a file written under the previous name is not read: the share list rebuilds
+  from your bags at login, and standing offers and reserves, which are set by hand, start
+  empty.
 - **A key you bound yourself has to be bound again.** The keybind action names changed, so
   the old binding no longer matches anything; the two actions sit in ESC - Controls -
   Keybinds under Guilds Bounty.

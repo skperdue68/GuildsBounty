@@ -15,11 +15,9 @@ The text of the addon's page on ESOUI, both the short description and the full B
 `tools/make_expired_badge.py` redraws `media/guildsbounty_expired.dds`, the stopwatch used by `/ishare expire`. It needs Python 3 and Pillow as well; run it from the repository root with `python3 tools/make_expired_badge.py`. The game never loads it.
 
 Download and extract to your ESO AddOns Directory, so that the folder is `GuildsBounty` with
-`GuildsBounty.txt` inside it. Delete whatever folder the addon was installed in before, because
-two copies under different folder names both load. To keep the list you already have, rename the
-saved-variables file the previous version wrote to
-`SavedVariables/GuildsBountySavedVars.lua` before you log in; otherwise the shares rebuild from
-your bags at login and standing offers and reserves start empty.
+`GuildsBounty.txt` inside it. Two copies of the addon under different folder names both load, so
+keep only this one. It writes `SavedVariables/GuildsBountySavedVars.lua`; a file under the name an
+older version used is not read.
 Ensure Add on is loaded at startup
 
 
